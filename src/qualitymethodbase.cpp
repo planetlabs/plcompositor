@@ -16,7 +16,7 @@
 
 #include "compositor.h"
 
-static std::map<CPLString,QualityMethodBase*> templateMap;
+static std::map<CPLString,QualityMethodBase*> *templateMap = NULL;
     
 /************************************************************************/
 /*                         QualityMethodBase()                          */
@@ -26,9 +26,12 @@ QualityMethodBase::QualityMethodBase(const char *name)
 
 {
     this->name = name;
-    
-    if( templateMap.count(this->name) == 0)
-        templateMap[this->name] = this;
+
+    if( templateMap == NULL )
+        templateMap = new std::map<CPLString,QualityMethodBase*>();
+
+    if( templateMap->count(this->name) == 0)
+        (*templateMap)[this->name] = this;
 }
 
 /************************************************************************/
@@ -50,12 +53,12 @@ QualityMethodBase *QualityMethodBase::CreateQualityFunction(
 {
     CPLString name(name_in);
 
-    if( templateMap.count(name) == 0 )
+    if( templateMap->count(name) == 0 )
     {
         CPLError( CE_Fatal, CPLE_AppDefined,
                   "Failed to find quality function with name '%s'.",
                   name.c_str() );
     }
 
-    return templateMap[name]->create(context, input);
+    return (*templateMap)[name]->create(context, input);
 }

@@ -25,5 +25,6 @@ clean:
 	rm -f $(OBJ) src/compositor.o compositor
 
 check:	compositor
-	(cd tests; nosetests)
+	(cd tests; python compositor_tests.py)
+
 

@@ -139,6 +139,28 @@ class Tests(unittest.TestCase):
         self.check('darkest_golden.tif', test_file)
         os.unlink(test_file)
         
+    def test_newest(self):
+        test_file = 'newest_test.tif'
+        shutil.copyfile('saojose/saojose_l8_chip.tif', test_file)
+
+        args = [
+            '-q',
+            '-s', 'quality', 'scene_measure',
+            '-s', 'scene_measure', 'acquisition_date',
+            '-o', test_file,
+            '-i', 'saojose/saojose_LC82150642013216LGN00_RGB.tif',
+            '-qm', 'acquisition_date', '1377000216',
+            '-i', 'saojose/saojose_LC82150642014011LGN00_RGB.tif',
+            '-qm', 'acquisition_date', '1377001011',
+            '-i', 'saojose/saojose_LC82150642013104LGN01_RGB.tif',
+            '-qm', 'acquisition_date', '1377000104',
+            ]
+
+        self.run_compositor(args)
+
+        self.check('newest_golden.tif', test_file)
+        os.unlink(test_file)
+        
     def test_with_l8_cloud_mask(self):
         test_file = 'l8_cloud_mask_test.tif'
         shutil.copyfile('saojose/saojose_l8_chip.tif', test_file)

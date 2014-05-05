@@ -47,7 +47,7 @@ public:
             short *pixels = lineObj->getBand(iBand);
 
             for(int i=0; i < width; i++ )
-                quality[i] += (32768 - pixels[i]);
+                quality[i] += (32768 - pixels[i]) / 96000.0;
         }
     
         GByte *alpha = lineObj->getAlpha();

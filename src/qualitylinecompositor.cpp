@@ -44,6 +44,7 @@ void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
     for(i = 0; i < plContext->inputFiles.size(); i++ )
     {
         float *quality = inputLines[i]->getQuality();
+
         for(iPixel=0; iPixel < width; iPixel++) 
         {
             if(quality[iPixel] > bestQuality[iPixel])
@@ -53,6 +54,8 @@ void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
             }
         }
     }
+
+    plContext->qualityHistogram.accumulate(bestQuality.data(), width);
 
 /* -------------------------------------------------------------------- */
 /*      Build output with best pixels source for each pixel.            */

@@ -54,6 +54,11 @@ class PLCHistogram {
     
     double scaleMin;
     double scaleMax;
+
+    double actualMin;
+    double actualMax;
+    double actualMean;
+    int    actualCount;
     
     std::vector<int> counts;
 
@@ -102,6 +107,7 @@ class PLCContext {
     virtual ~PLCContext();
 
     int           quiet;
+    int           verbose;
     
     CPLStringList strategyParams;
 
@@ -112,6 +118,8 @@ class PLCContext {
 
     PLCLine *     getOutputLine(int line);
     void          writeOutputLine(int line, PLCLine *);
+
+    PLCHistogram  qualityHistogram;
 };
 
 class QualityMethodBase {

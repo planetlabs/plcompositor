@@ -28,7 +28,7 @@ void Usage()
 {
     printf( "Usage: compositor --help --help-general\n" );
     printf( "         -o output_file\n" );
-    printf( "         [-s name value]* [-q]\n" );
+    printf( "         [-s name value]* [-q] [-v]\n" );
     printf( "         [-i input_file [-c cloudmask] [-qm name value]*]*\n" );
     exit(1);
 }
@@ -84,6 +84,11 @@ int main(int argc, char **argv)
         {
             plContext.quiet = TRUE;
             pfnProgress = GDALDummyProgress;
+        }
+
+        else if( EQUAL(argv[i],"-v") )
+        {
+            plContext.verbose++;
         }
 
         else
@@ -144,6 +149,14 @@ int main(int argc, char **argv)
     pfnProgress(1.0, NULL, NULL);
 
     GDALClose(plContext.outputDS);
+
+/* -------------------------------------------------------------------- */
+/*      Reporting?                                                      */
+/* -------------------------------------------------------------------- */
+    if( plContext.verbose )
+    {
+        plContext.qualityHistogram.report(stdout, "final_quality");
+    }
 
     exit(0);
 }

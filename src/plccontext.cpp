@@ -25,6 +25,7 @@ PLCContext::PLCContext()
 {
     outputDS = NULL;
     quiet = FALSE;
+    verbose = 0;
 }
 
 /************************************************************************/

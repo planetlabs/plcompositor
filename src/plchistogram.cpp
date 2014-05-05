@@ -68,7 +68,8 @@ void PLCHistogram::accumulate(float *quality, int count)
         else
         {
             int iBucket = (int) 
-                floor((quality[i] - scaleMin) / (scaleMax-scaleMin));
+                floor((counts.size()-2) * (quality[i] - scaleMin) 
+                      / (scaleMax-scaleMin));
 
             counts[iBucket]++;
         }
@@ -95,6 +96,7 @@ void PLCHistogram::report(FILE *fp, const char *id)
     int maxWithinHistogram = 0;
     for( unsigned int i = 1; i < counts.size()-1; i++ )
         maxWithinHistogram = MAX(maxWithinHistogram, counts[i]);
+    maxWithinHistogram = MAX(1,maxWithinHistogram);
 
     fprintf(fp, "\n\n%s Histogram and Stats\n", id);
 
@@ -117,9 +119,9 @@ void PLCHistogram::report(FILE *fp, const char *id)
         starCount = MIN(starCount, 60);
         
         for( int j = 0; j < starCount; j++ )
-            fprintf(fp,"*");
+            fputc('*', fp);
         if( counts[i] > maxWithinHistogram )
-            fprintf(fp, "+");
+            fputc('+', fp);
         fprintf( fp, "\n" );
     }
 

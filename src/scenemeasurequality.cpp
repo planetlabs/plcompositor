@@ -45,9 +45,9 @@ public:
             direction = -1.0;
         }
 
-        measureValue = input->getQM(measureName);
+        obj->measureValue = input->getQM(measureName);
 
-        if( measureValue < 0.0 )
+        if( obj->measureValue < 0.0 )
         {
             CPLError( CE_Fatal, CPLE_AppDefined,
                       "Scene %s lacks quality measure %s.", 
@@ -56,7 +56,7 @@ public:
         }
 
         if( direction < 0.0 )
-            measureValue = 100000000.0 - measureValue;
+            obj->measureValue = 100000000.0 - obj->measureValue;
         
         return obj;
     }

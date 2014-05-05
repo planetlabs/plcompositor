@@ -33,7 +33,14 @@ public:
     QualityMethodBase *create(PLCContext* plContext, PLCInput* input) {
 
         SceneMeasureQuality *obj = new SceneMeasureQuality();
-        obj->input = input;
+        obj->initialize(plContext, input);
+        return obj;
+    }
+
+    
+    /********************************************************************/
+    void initialize(PLCContext *plContext, PLCInput* input) {
+        input = input;
 
         const char *measureName =
             plContext->strategyParams.FetchNameValueDef("scene_measure", 
@@ -45,9 +52,9 @@ public:
             direction = -1.0;
         }
 
-        obj->measureValue = input->getQM(measureName);
+        measureValue = input->getQM(measureName);
 
-        if( obj->measureValue < 0.0 )
+        if( measureValue < 0.0 )
         {
             CPLError( CE_Fatal, CPLE_AppDefined,
                       "Scene %s lacks quality measure %s.", 
@@ -56,9 +63,7 @@ public:
         }
 
         if( direction < 0.0 )
-            obj->measureValue = 100000000.0 - obj->measureValue;
-        
-        return obj;
+            measureValue = 100000000.0 - measureValue;
     }
 
     /********************************************************************/

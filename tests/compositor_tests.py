@@ -82,7 +82,9 @@ class Tests(unittest.TestCase):
             binary = '../compositor'
         else:
             binary = 'compositor'
-        return os.system(' '.join([binary] + args))
+        cmd = ' '.join([binary] + args)
+        print cmd
+        return os.system(cmd)
 
     def test_greenest_simple(self):
         test_file = 'greenest_simple_test.tif'

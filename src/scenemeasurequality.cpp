@@ -45,13 +45,6 @@ public:
         const char *measureName =
             plContext->strategyParams.FetchNameValueDef("scene_measure", 
                                                         "NULL");
-        float direction = 1.0;
-        if( measureName[0] == '-' )
-        {
-            measureName++;
-            direction = -1.0;
-        }
-
         measureValue = input->getQM(measureName);
 
         if( measureValue < 0.0 )
@@ -62,8 +55,17 @@ public:
                       measureName);
         }
 
-        if( direction < 0.0 )
-            measureValue = 100000000.0 - measureValue;
+        // Do we have rescaling values to try to bring this into 0.0 to 1.0?
+        CPLString minPrefix = "scale_min:";
+        double scaleMin = 
+            atof(plContext->strategyParams.FetchNameValueDef(
+                     (minPrefix + measureName).c_str(), "0.0"));
+        CPLString maxPrefix = "scale_max:";
+        double scaleMax = 
+            atof(plContext->strategyParams.FetchNameValueDef(
+                     (maxPrefix + measureName).c_str(), "1.0"));
+
+        measureValue = (measureValue - scaleMin) / (scaleMax - scaleMin);
     }
 
     /********************************************************************/

@@ -111,13 +111,16 @@ int main(int argc, char **argv)
     if( plContext.outputDS == NULL )
         exit(1);
 
+    plContext.width = plContext.outputDS->GetRasterXSize();
+    plContext.height = plContext.outputDS->GetRasterYSize();
+
     for( unsigned int i=0; i < plContext.inputFiles.size(); i++ )
     {
         plContext.inputFiles[i]->Initialize(&plContext);
 
         GDALDataset *inputDS = plContext.inputFiles[i]->getDS();
-        if( inputDS->GetRasterXSize() != plContext.outputDS->GetRasterXSize()
-            || inputDS->GetRasterYSize() != plContext.outputDS->GetRasterYSize())
+        if( inputDS->GetRasterXSize() != plContext.width
+            || inputDS->GetRasterYSize() != plContext.height)
         {
             CPLError(CE_Fatal, CPLE_AppDefined,
                      "Size of %s (%dx%d) does not match target %s (%dx%d)",
@@ -133,14 +136,23 @@ int main(int argc, char **argv)
 /* -------------------------------------------------------------------- */
 /*      Run through the image processing scanlines.                     */
 /* -------------------------------------------------------------------- */
+    CPLString compositor = plContext.getStratParam("compositor", "quality");
+
     for(int line=0; line < plContext.outputDS->GetRasterYSize(); line++ )
     {
-        pfnProgress(line / (double) plContext.outputDS->GetRasterYSize(),
-                    NULL, NULL);
+        pfnProgress(line / (double) plContext.height, NULL, NULL);
 
+        plContext.line = line;
         PLCLine *lineObj = plContext.getOutputLine(line);
 
-        QualityLineCompositor(&plContext, line, lineObj );
+        if( EQUAL(compositor,"quality") )
+            QualityLineCompositor(&plContext, line, lineObj );
+        else if( EQUAL(compositor,"median") )
+            MedianLineCompositor(&plContext, line, lineObj );
+        else
+            CPLError(CE_Fatal, CPLE_AppDefined,
+                     "Unrecognized compositor '%s'.",
+                     compositor.c_str());
 
         plContext.writeOutputLine(line, lineObj);
         

@@ -183,6 +183,27 @@ class Tests(unittest.TestCase):
         self.check('l8_cloud_mask_golden.tif', test_file)
         os.unlink(test_file)
         
+    def test_median_with_cloud(self):
+        test_file = 'median_with_cloud_test.tif'
+        shutil.copyfile('saojose/saojose_l8_chip.tif', test_file)
+
+        args = [
+            '-q',
+            '-s', 'quality', 'darkest',
+            '-s', 'cloud_quality', 'landsat8',
+            '-s', 'compositor', 'median',
+            '-o', test_file, 
+            ]
+
+        for filename in SAOJOSE_INPUTS:
+            args += ['-i', filename, 
+                     '-c', filename.replace('_LC8', '_cld_LC8')]
+        
+        self.run_compositor(args)
+
+        self.check('median_with_cloud_golden.tif', test_file)
+        os.unlink(test_file)
+        
 
 if __name__ == '__main__':
     unittest.main()

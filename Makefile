@@ -11,6 +11,7 @@ OBJ =	src/plcinput.o \
 	\
 	src/qualitymethodbase.o \
 	src/qualitylinecompositor.o \
+	src/medianlinecompositor.o \
 	src/darkestquality.o \
 	src/greenestquality.o \
 	src/scenemeasurequality.o \

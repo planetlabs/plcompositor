@@ -99,4 +99,3 @@ void PLCContext::writeOutputLine(int line, PLCLine *lineObj)
             exit(1);
     }
 }
-

@@ -106,10 +106,18 @@ class PLCContext {
     PLCContext();
     virtual ~PLCContext();
 
+    int           width;
+    int           height;
+    int           line;
+    
     int           quiet;
     int           verbose;
+    int           currentLine;
     
     CPLStringList strategyParams;
+    const char   *getStratParam(const char *name, const char *def=NULL) {
+        return strategyParams.FetchNameValueDef(name, def);
+    }
 
     CPLString     outputFilename;
     GDALDataset  *outputDS;
@@ -141,3 +149,4 @@ class QualityMethodBase {
 
 
 void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj);
+void MedianLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj);

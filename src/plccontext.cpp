@@ -99,3 +99,27 @@ void PLCContext::writeOutputLine(int line, PLCLine *lineObj)
             exit(1);
     }
 }
+
+/************************************************************************/
+/*                            isDebugPixel()                            */
+/************************************************************************/
+
+void debug_break()
+{
+    printf( "*" );
+    fflush(stdout);
+}
+
+int PLCContext::isDebugPixel(int pixel, int line)
+{
+    for( unsigned int i = 0; i < debugPixels.size(); i += 2 )
+    {
+        if( debugPixels[i] == pixel && debugPixels[i+1] == line )
+        {
+            debug_break();
+            return TRUE;
+        }
+    }
+
+    return FALSE;
+}

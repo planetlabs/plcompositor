@@ -28,7 +28,7 @@ void Usage()
 {
     printf( "Usage: compositor --help --help-general\n" );
     printf( "         -o output_file\n" );
-    printf( "         [-s name value]* [-q] [-v]\n" );
+    printf( "         [-s name value]* [-q] [-v] [-dp pixel line]\n" );
     printf( "         [-i input_file [-c cloudmask] [-qm name value]*]*\n" );
     exit(1);
 }
@@ -86,6 +86,13 @@ int main(int argc, char **argv)
             pfnProgress = GDALDummyProgress;
         }
 
+        else if( EQUAL(argv[i],"-dp") && i < argc-2 )
+        {
+            plContext.debugPixels.push_back(atoi(argv[i+1]));
+            plContext.debugPixels.push_back(atoi(argv[i+2]));
+            i += 2;
+        }
+
         else if( EQUAL(argv[i],"-v") )
         {
             plContext.verbose++;
@@ -101,6 +108,19 @@ int main(int argc, char **argv)
     if( plContext.inputFiles.size() == 0 
         || plContext.outputFilename.size() == 0)
         Usage();
+
+/* -------------------------------------------------------------------- */
+/*      In some contexts, it is easier to pass debug requests via       */
+/*      environment variable.                                           */
+/* -------------------------------------------------------------------- */
+    if( getenv("DEBUG_PIXELS") != NULL )
+    {
+        CPLStringList values(CSLTokenizeStringComplex(
+                                 getenv("DEBUG_PIXELS"), ",",
+                                 FALSE, FALSE));
+        for( int i = 0; i < values.size(); i++ )
+            plContext.debugPixels.push_back(atoi(values[i]));
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Confirm that all inputs and outputs are the same size.  We      */

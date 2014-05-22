@@ -22,6 +22,7 @@
 class QualityMethodBase;
 class PLCContext;
 
+////////////////////////////////////////////////////////////////////////////
 class PLCLine {
     int     width;
     
@@ -47,6 +48,7 @@ class PLCLine {
     void    mergeCloudQuality();
 };
 
+////////////////////////////////////////////////////////////////////////////
 class PLCHistogram {
   public:
     PLCHistogram();
@@ -66,7 +68,7 @@ class PLCHistogram {
     void report(FILE *fp, const char *id);
 };
 
-
+////////////////////////////////////////////////////////////////////////////
 class PLCInput {
     CPLString    filename;
     GDALDataset *DS;
@@ -101,6 +103,7 @@ class PLCInput {
     int          computeQuality(PLCContext*, PLCLine*);
 };
 
+////////////////////////////////////////////////////////////////////////////
 class PLCContext {
   public:
     PLCContext();
@@ -113,6 +116,9 @@ class PLCContext {
     int           quiet;
     int           verbose;
     int           currentLine;
+
+    std::vector<int> debugPixels;
+    int           isDebugPixel(int pixel, int line);
     
     CPLStringList strategyParams;
     const char   *getStratParam(const char *name, const char *def=NULL) {
@@ -130,6 +136,7 @@ class PLCContext {
     PLCHistogram  qualityHistogram;
 };
 
+////////////////////////////////////////////////////////////////////////////
 class QualityMethodBase {
   protected:
     QualityMethodBase(const char *name);

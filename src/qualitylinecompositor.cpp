@@ -52,6 +52,10 @@ void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
                 bestQuality[iPixel] = quality[iPixel];
                 bestInput[iPixel] = i;
             }
+            
+            if( plContext->isDebugPixel(iPixel, line) )
+                printf( "Quality from input %d @ %d,%d is %.8f\n", 
+                        i, iPixel, line, quality[iPixel] );
         }
     }
 
@@ -71,6 +75,11 @@ void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
                 short *dst_pixels = lineObj->getBand(iBand);
                 short *src_pixels = inputLines[bestInput[iPixel]]->getBand(iBand);
                 dst_pixels[iPixel] = src_pixels[iPixel];
+
+                if( plContext->isDebugPixel(iPixel, line) )
+                    printf( "Assign band %d value %d for pixel %d,%d from source %d.\n", 
+                            iBand, dst_pixels[iPixel], iPixel, line, 
+                            bestInput[iPixel] );
             }
             dst_alpha[iPixel] = 255;
         }

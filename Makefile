@@ -1,8 +1,9 @@
 
 LIBS = -L/home/warmerdam/bld/lib -L/usr/local/lib -lgdal
 INCLUDE = -I/home/warmerdam/bld/include -I/usr/include/gdal
+OPTFLAGS = -Wall -g
 
-CPPFLAGS = $(INCLUDE) -Wall -g
+CPPFLAGS = $(INCLUDE) $(OPTFLAGS)
 
 OBJ =	src/plcinput.o \
 	src/plcline.o \

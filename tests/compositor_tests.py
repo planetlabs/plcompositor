@@ -3,6 +3,7 @@ import sys
 import os
 import shutil
 import urllib
+from zipfile import ZipFile
 
 from osgeo import gdal
 
@@ -30,7 +31,8 @@ class Tests(unittest.TestCase):
         # Ensure we have saojose data unpacked.
         if not os.path.exists('saojose'):
             self.fetch_data('saojose_l8_chip.zip')
-            os.system('unzip saojose_l8_chip.zip')
+        with ZipFile(saojose_l8_chip.zip', 'r') as zfile:
+            zfile.extractall()
 
     def fetch_data(self, filename):
         # We eventually need some sort of md5 or date checking. 

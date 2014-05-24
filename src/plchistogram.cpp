@@ -27,6 +27,7 @@ PLCHistogram::PLCHistogram() :
         actualCount(0)
 
 {
+    counts.resize(22);
 }
 
 /************************************************************************/
@@ -51,7 +52,6 @@ void PLCHistogram::accumulate(float *quality, int count)
     if( actualCount == 0 )
     {
         actualMin = actualMax = quality[0];
-        counts.resize(66);
     }
 
     double addToMean = 0.0;

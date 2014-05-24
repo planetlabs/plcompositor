@@ -22,6 +22,7 @@
 class QualityMethodBase;
 class PLCContext;
 
+////////////////////////////////////////////////////////////////////////////
 class PLCLine {
     int     width;
     
@@ -47,6 +48,7 @@ class PLCLine {
     void    mergeCloudQuality();
 };
 
+////////////////////////////////////////////////////////////////////////////
 class PLCHistogram {
   public:
     PLCHistogram();
@@ -66,7 +68,7 @@ class PLCHistogram {
     void report(FILE *fp, const char *id);
 };
 
-
+////////////////////////////////////////////////////////////////////////////
 class PLCInput {
     CPLString    filename;
     GDALDataset *DS;
@@ -101,15 +103,27 @@ class PLCInput {
     int          computeQuality(PLCContext*, PLCLine*);
 };
 
+////////////////////////////////////////////////////////////////////////////
 class PLCContext {
   public:
     PLCContext();
     virtual ~PLCContext();
 
+    int           width;
+    int           height;
+    int           line;
+    
     int           quiet;
     int           verbose;
+    int           currentLine;
+
+    std::vector<int> debugPixels;
+    int           isDebugPixel(int pixel, int line);
     
     CPLStringList strategyParams;
+    const char   *getStratParam(const char *name, const char *def=NULL) {
+        return strategyParams.FetchNameValueDef(name, def);
+    }
 
     CPLString     outputFilename;
     GDALDataset  *outputDS;
@@ -122,6 +136,7 @@ class PLCContext {
     PLCHistogram  qualityHistogram;
 };
 
+////////////////////////////////////////////////////////////////////////////
 class QualityMethodBase {
   protected:
     QualityMethodBase(const char *name);
@@ -141,3 +156,4 @@ class QualityMethodBase {
 
 
 void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj);
+void MedianLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj);

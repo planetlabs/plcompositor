@@ -59,6 +59,8 @@ The double bits (4-5, 6-7, 8-9, 10-11, 12-13, and 14-15) represent levels of con
 class Landsat8CloudQuality : public QualityMethodBase 
 {
     PLCInput *input;
+    PLCContext *context;
+    PLCHistogram cloudHistogram;
 
 public:
     Landsat8CloudQuality() : QualityMethodBase("landsat8") {}
@@ -69,6 +71,8 @@ public:
 
         Landsat8CloudQuality *obj = new Landsat8CloudQuality();
         obj->input = input;
+        obj->context = context;
+        obj->cloudHistogram.counts.resize(6);
         return obj;
     }
 
@@ -109,6 +113,11 @@ public:
             }
         }
 
+        cloudHistogram.accumulate(quality, width);
+
+        if( context->line == context->height - 1 
+            && context->verbose > 0 )
+            cloudHistogram.report(stdout, "L8 Cloud Quality");
         return TRUE;
     }
 };

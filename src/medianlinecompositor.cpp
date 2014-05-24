@@ -15,16 +15,51 @@
  */
 
 #include "compositor.h"
+#include <algorithm>
+
+// used to sort for median.
+class InputQualityPair {
+public:
+    int inputFile;
+    float quality;
+    
+    bool operator< (const InputQualityPair &rhs) const {
+        return this->quality < rhs.quality;
+    }
+};
 
 /************************************************************************/
-/*                       QualityLineCompositor()                        */
+/*                       MedianLineCompositor()                         */
 /************************************************************************/
 
-void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
+/**
+ * \brief Median filtered compositor.
+ *
+ * This compositor selects the median valued pixel from the stack 
+ * based on quality *after* discarding very low quality candidates. 
+ */
+
+void MedianLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
 
 {
     std::vector<PLCLine *> inputLines;
     unsigned int i, iPixel, width=lineObj->getWidth();
+    std::vector<float*> inputQualities;
+
+/* -------------------------------------------------------------------- */
+/*      Initialization logic.                                           */
+/* -------------------------------------------------------------------- */
+    static PLCHistogram activeCandidatesHistogram;
+    static float thresholdQuality;
+
+    if( line == 0 )
+    {
+        activeCandidatesHistogram.scaleMax = plContext->inputFiles.size();
+        activeCandidatesHistogram.counts.resize(plContext->inputFiles.size()+2);
+        
+        thresholdQuality = atof(
+            plContext->getStratParam("median_quality_threshold", "0.00001"));
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Read inputs and compute qualities.                              */
@@ -33,6 +68,7 @@ void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
     {
         inputLines.push_back(plContext->inputFiles[i]->getLine(line));
         plContext->inputFiles[i]->computeQuality(plContext, inputLines[i]);
+        inputQualities.push_back(inputLines[i]->getQuality());
     }
 
 /* -------------------------------------------------------------------- */
@@ -41,21 +77,36 @@ void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
     std::vector<int> bestInput(width, -1);
     std::vector<float> bestQuality(width, -1.0); 
 
-    for(i = 0; i < plContext->inputFiles.size(); i++ )
-    {
-        float *quality = inputLines[i]->getQuality();
+    std::vector<InputQualityPair> candidates;
+    candidates.resize(plContext->inputFiles.size());
 
-        for(iPixel=0; iPixel < width; iPixel++) 
+    for(iPixel=0; iPixel < width; iPixel++)
+    {
+        int activeCandidates = 0;
+
+        for(i = 0; i < plContext->inputFiles.size(); i++ )
         {
-            if(quality[iPixel] > bestQuality[iPixel])
-            {
-                bestQuality[iPixel] = quality[iPixel];
-                bestInput[iPixel] = i;
-            }
+            float *quality = inputQualities[i];
             
-            if( plContext->isDebugPixel(iPixel, line) )
-                printf( "Quality from input %d @ %d,%d is %.8f\n", 
-                        i, iPixel, line, quality[iPixel] );
+            if(quality[iPixel] >= thresholdQuality)
+            {
+                candidates[activeCandidates].inputFile = i;
+                candidates[activeCandidates].quality = quality[iPixel];
+                activeCandidates++;
+            }
+        }
+
+        if( activeCandidates > 1 )
+            std::sort(candidates.begin(),
+                      candidates.begin() + activeCandidates);
+
+        if( activeCandidates > 0 )
+        {
+            bestInput[iPixel] = activeCandidates/2;
+            bestQuality[iPixel] = candidates[bestInput[iPixel]].quality;
+
+            float countAsFloat = activeCandidates;
+            activeCandidatesHistogram.accumulate(&countAsFloat, 1);
         }
     }
 
@@ -75,11 +126,6 @@ void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
                 short *dst_pixels = lineObj->getBand(iBand);
                 short *src_pixels = inputLines[bestInput[iPixel]]->getBand(iBand);
                 dst_pixels[iPixel] = src_pixels[iPixel];
-
-                if( plContext->isDebugPixel(iPixel, line) )
-                    printf( "Assign band %d value %d for pixel %d,%d from source %d.\n", 
-                            iBand, dst_pixels[iPixel], iPixel, line, 
-                            bestInput[iPixel] );
             }
             dst_alpha[iPixel] = 255;
         }
@@ -92,4 +138,10 @@ void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
 /* -------------------------------------------------------------------- */
     for(i = 0; i < plContext->inputFiles.size(); i++ )
         delete inputLines[i];
+
+    if( plContext->verbose > 0 
+        && line == plContext->outputDS->GetRasterYSize()-1 )
+    {
+        activeCandidatesHistogram.report(stdout, "Active Candidates");
+    }
 }

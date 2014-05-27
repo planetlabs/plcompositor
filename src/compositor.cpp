@@ -165,14 +165,16 @@ int main(int argc, char **argv)
     if( !EQUAL(plContext.sourceTraceFilename,"") )
     {
         GDALDriver *tiffDriver = (GDALDriver *) GDALGetDriverByName("GTiff");
+        CPLStringList createOptions;
         GDALDataType stPixelType = GDT_Byte;
         if( plContext.inputFiles.size() > 255 )
             stPixelType = GDT_UInt16;
 
+        createOptions.AddString("COMPRESS=LZW");
         plContext.sourceTraceDS = 
             tiffDriver->Create(plContext.sourceTraceFilename,
                                plContext.width, plContext.height, 1,
-                               stPixelType, NULL);
+                               stPixelType, createOptions);
         plContext.sourceTraceDS->SetProjection(
             plContext.outputDS->GetProjectionRef());
         

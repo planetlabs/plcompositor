@@ -26,6 +26,7 @@ PLCLine::PLCLine(int width)
     this->width = width;
     bandCount = 0;
     cloud = NULL;
+    source = NULL;
     alpha = NULL;
     quality = NULL;
     cloudQuality = NULL;
@@ -42,6 +43,7 @@ PLCLine::~PLCLine()
         CPLFree(bandData[i]);
 
     CPLFree( cloud );
+    CPLFree( source );
     CPLFree( alpha );
     CPLFree( quality );
     CPLFree( cloudQuality );
@@ -97,6 +99,21 @@ unsigned short *PLCLine::getCloud()
     }
 
     return cloud;
+}
+
+/************************************************************************/
+/*                             getSource()                              */
+/************************************************************************/
+
+unsigned short *PLCLine::getSource()
+
+{
+    if( source == NULL )
+    {
+       source = (unsigned short *) CPLCalloc(sizeof(short),width);
+    }
+
+    return source;
 }
 
 /************************************************************************/

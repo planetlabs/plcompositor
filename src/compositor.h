@@ -32,6 +32,7 @@ class PLCLine {
     GByte  *alpha;
     float  *quality;
     float  *cloudQuality;
+    unsigned short  *source;
     
   public:
     PLCLine(int width);
@@ -42,6 +43,7 @@ class PLCLine {
     short  *getBand(int);
     GByte  *getAlpha();
     unsigned short  *getCloud();
+    unsigned short  *getSource();
     float  *getQuality();
     float  *getCloudQuality();
 
@@ -127,6 +129,9 @@ class PLCContext {
 
     CPLString     outputFilename;
     GDALDataset  *outputDS;
+
+    CPLString     sourceTraceFilename;
+    GDALDataset  *sourceTraceDS;
 
     std::vector<PLCInput*> inputFiles;
 

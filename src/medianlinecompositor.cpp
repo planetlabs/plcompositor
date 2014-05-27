@@ -74,7 +74,7 @@ void MedianLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
 /* -------------------------------------------------------------------- */
 /*      Establish which is the best source for each pixel.              */
 /* -------------------------------------------------------------------- */
-    std::vector<int> bestInput(width, -1);
+    unsigned short *bestInput = lineObj->getSource();
     std::vector<float> bestQuality(width, -1.0); 
 
     std::vector<InputQualityPair> candidates;
@@ -102,8 +102,8 @@ void MedianLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
 
         if( activeCandidates > 0 )
         {
-            bestInput[iPixel] = activeCandidates/2;
-            bestQuality[iPixel] = candidates[bestInput[iPixel]].quality;
+            bestInput[iPixel] = activeCandidates/2+1;
+            bestQuality[iPixel] = candidates[bestInput[iPixel]-1].quality;
 
             float countAsFloat = activeCandidates;
             activeCandidatesHistogram.accumulate(&countAsFloat, 1);
@@ -119,12 +119,13 @@ void MedianLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
     {
         GByte *dst_alpha = lineObj->getAlpha();
 
-        if(bestInput[iPixel] != -1)
+        if(bestInput[iPixel] != 0)
         {
             for(int iBand=0; iBand < lineObj->getBandCount(); iBand++)
             {
                 short *dst_pixels = lineObj->getBand(iBand);
-                short *src_pixels = inputLines[bestInput[iPixel]]->getBand(iBand);
+                short *src_pixels = 
+                    inputLines[bestInput[iPixel]-1]->getBand(iBand);
                 dst_pixels[iPixel] = src_pixels[iPixel];
             }
             dst_alpha[iPixel] = 255;

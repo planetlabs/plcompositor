@@ -38,7 +38,7 @@ void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
 /* -------------------------------------------------------------------- */
 /*      Establish which is the best source for each pixel.              */
 /* -------------------------------------------------------------------- */
-    std::vector<int> bestInput(width, -1);
+    unsigned short *bestInput = lineObj->getSource();
     std::vector<float> bestQuality(width, -1.0); 
 
     for(i = 0; i < plContext->inputFiles.size(); i++ )
@@ -50,7 +50,7 @@ void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
             if(quality[iPixel] > bestQuality[iPixel])
             {
                 bestQuality[iPixel] = quality[iPixel];
-                bestInput[iPixel] = i;
+                bestInput[iPixel] = i+1;
             }
             
             if( plContext->isDebugPixel(iPixel, line) )
@@ -68,18 +68,19 @@ void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
     {
         GByte *dst_alpha = lineObj->getAlpha();
 
-        if(bestInput[iPixel] != -1)
+        if(bestInput[iPixel] != 0)
         {
             for(int iBand=0; iBand < lineObj->getBandCount(); iBand++)
             {
                 short *dst_pixels = lineObj->getBand(iBand);
-                short *src_pixels = inputLines[bestInput[iPixel]]->getBand(iBand);
+                short *src_pixels = 
+                    inputLines[bestInput[iPixel]-1]->getBand(iBand);
                 dst_pixels[iPixel] = src_pixels[iPixel];
 
                 if( plContext->isDebugPixel(iPixel, line) )
                     printf( "Assign band %d value %d for pixel %d,%d from source %d.\n", 
                             iBand, dst_pixels[iPixel], iPixel, line, 
-                            bestInput[iPixel] );
+                            bestInput[iPixel]-1 );
             }
             dst_alpha[iPixel] = 255;
         }

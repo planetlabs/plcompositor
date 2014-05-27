@@ -27,7 +27,7 @@ void Usage()
 
 {
     printf( "Usage: compositor --help --help-general\n" );
-    printf( "         -o output_file\n" );
+    printf( "         -o output_file [-st source_trace_file]\n" );
     printf( "         [-s name value]* [-q] [-v] [-dp pixel line]\n" );
     printf( "         [-i input_file [-c cloudmask] [-qm name value]*]*\n" );
     exit(1);
@@ -78,6 +78,12 @@ int main(int argc, char **argv)
                  && EQUAL(plContext.outputFilename,""))
         {
             plContext.outputFilename = argv[++i];
+        }
+
+        else if( EQUAL(argv[i],"-st") && i < argc-1 
+                 && EQUAL(plContext.sourceTraceFilename,""))
+        {
+            plContext.sourceTraceFilename = argv[++i];
         }
 
         else if( EQUAL(argv[i],"-q") )
@@ -151,6 +157,39 @@ int main(int argc, char **argv)
                      plContext.outputDS->GetRasterXSize(),
                      plContext.outputDS->GetRasterYSize());
         }
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Create source trace file if requested.                          */
+/* -------------------------------------------------------------------- */
+    if( !EQUAL(plContext.sourceTraceFilename,"") )
+    {
+        GDALDriver *tiffDriver = (GDALDriver *) GDALGetDriverByName("GTiff");
+        GDALDataType stPixelType = GDT_Byte;
+        if( plContext.inputFiles.size() > 255 )
+            stPixelType = GDT_UInt16;
+
+        plContext.sourceTraceDS = 
+            tiffDriver->Create(plContext.sourceTraceFilename,
+                               plContext.width, plContext.height, 1,
+                               stPixelType, NULL);
+        plContext.sourceTraceDS->SetProjection(
+            plContext.outputDS->GetProjectionRef());
+        
+        double geotransform[6];
+        plContext.outputDS->GetGeoTransform(geotransform);
+        plContext.sourceTraceDS->SetGeoTransform(geotransform);
+
+        CPLStringList sourceMD;
+        CPLString key;
+
+        for( unsigned int i=0; i < plContext.inputFiles.size(); i++ )
+        {
+            key.Printf("SOURCE_%d", i+1);
+            sourceMD.SetNameValue(key, plContext.inputFiles[i]->getFilename());
+        }
+
+        plContext.sourceTraceDS->SetMetadata(sourceMD);
     }
 
 /* -------------------------------------------------------------------- */

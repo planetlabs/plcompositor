@@ -24,6 +24,7 @@ PLCContext::PLCContext()
 
 {
     outputDS = NULL;
+    sourceTraceDS = NULL;
     quiet = FALSE;
     verbose = 0;
 }
@@ -97,6 +98,14 @@ void PLCContext::writeOutputLine(int line, PLCLine *lineObj)
 
         if( eErr != CE_None )
             exit(1);
+
+        if( sourceTraceDS != NULL )
+        {
+            eErr = sourceTraceDS->GetRasterBand(1)->
+                RasterIO(GF_Write, 0, line, width, 1, 
+                         lineObj->getSource(), width, 1, GDT_UInt16, 
+                         0, 0);
+        }
     }
 }
 

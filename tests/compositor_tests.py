@@ -208,6 +208,30 @@ class Tests(unittest.TestCase):
         self.check('median_with_cloud_golden.tif', test_file)
         os.unlink(test_file)
         
+    def test_median_like_darkest(self):
+        # A median filter with median_threshold=1.0 should be the same
+        # as a simple quality darkest composite. 
+        test_file = 'median_like_darkest_test.tif'
+        shutil.copyfile('saojose/saojose_l8_chip.tif', test_file)
+
+        args = [
+            '-q',
+            '-s', 'quality', 'darkest',
+            '-s', 'compositor', 'median',
+            '-s', 'median_ratio', '1.00000001',
+            '-o', test_file, 
+            ]
+
+        for filename in SAOJOSE_INPUTS:
+            args += ['-i', filename]
+        
+        self.run_compositor(args)
+
+        # Why can't we use darkest_golden.tif?  There are 9 pixels different
+        # but I don't yet know why.
+        self.check('media_like_darkest_golden.tif', test_file)
+        os.unlink(test_file)
+        
 
 if __name__ == '__main__':
     unittest.main()

@@ -51,6 +51,7 @@ void MedianLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
 /* -------------------------------------------------------------------- */
     static PLCHistogram activeCandidatesHistogram;
     static float thresholdQuality;
+    static float medianRatio;
 
     if( line == 0 )
     {
@@ -59,6 +60,10 @@ void MedianLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
         
         thresholdQuality = atof(
             plContext->getStratParam("median_quality_threshold", "0.00001"));
+
+        // 0.5 is true median, 1.0 is best quality, 0.0 is worst quality.
+        medianRatio = atof(
+            plContext->getStratParam("median_ratio", "0.5"));
     }
 
 /* -------------------------------------------------------------------- */
@@ -102,7 +107,10 @@ void MedianLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
 
         if( activeCandidates > 0 )
         {
-            bestInput[iPixel] = activeCandidates/2+1;
+            int bestCandidate = 
+                MAX(0,MIN(activeCandidates-1,
+                          ((int) floor(activeCandidates*medianRatio))));
+            bestInput[iPixel] = candidates[bestCandidate].inputFile + 1;
             bestQuality[iPixel] = candidates[bestInput[iPixel]-1].quality;
 
             float countAsFloat = activeCandidates;

@@ -126,6 +126,7 @@ class Tests(unittest.TestCase):
     def test_darkest_with_source(self):
         test_file = 'darkest_test.tif'
         test_source_file = 'darkest_source_test.tif'
+        test_quality_file = 'darkest_quality_test.tif'
         shutil.copyfile('saojose/saojose_l8_chip.tif', test_file)
 
         args = [
@@ -133,6 +134,7 @@ class Tests(unittest.TestCase):
             '-s', 'quality', 'darkest',
             '-o', test_file, 
             '-st', test_source_file,
+            '-qo', test_quality_file,
             ]
 
         for filename in SAOJOSE_INPUTS:
@@ -142,8 +144,10 @@ class Tests(unittest.TestCase):
 
         self.check('darkest_golden.tif', test_file)
         self.check('darkest_source_golden.tif', test_source_file)
+        self.check('darkest_quality_golden.tif', test_quality_file)
         os.unlink(test_file)
         os.unlink(test_source_file)
+        os.unlink(test_quality_file)
         
     def test_newest(self):
         test_file = 'newest_test.tif'

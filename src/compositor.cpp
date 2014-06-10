@@ -27,7 +27,7 @@ void Usage()
 
 {
     printf( "Usage: compositor --help --help-general\n" );
-    printf( "         -o output_file [-st source_trace_file]\n" );
+    printf( "         -o output_file [-st source_trace_file] [-qo quality]\n" );
     printf( "         [-s name value]* [-q] [-v] [-dp pixel line]\n" );
     printf( "         [-i input_file [-c cloudmask] [-qm name value]*]*\n" );
     exit(1);
@@ -84,6 +84,12 @@ int main(int argc, char **argv)
                  && EQUAL(plContext.sourceTraceFilename,""))
         {
             plContext.sourceTraceFilename = argv[++i];
+        }
+
+        else if( EQUAL(argv[i],"-qo") && i < argc-1 
+                 && EQUAL(plContext.qualityFilename,""))
+        {
+            plContext.qualityFilename = argv[++i];
         }
 
         else if( EQUAL(argv[i],"-q") )
@@ -195,6 +201,34 @@ int main(int argc, char **argv)
     }
 
 /* -------------------------------------------------------------------- */
+/*      Create quality file if requested.                               */
+/* -------------------------------------------------------------------- */
+    if( !EQUAL(plContext.qualityFilename,"") )
+    {
+        GDALDriver *tiffDriver = (GDALDriver *) GDALGetDriverByName("GTiff");
+        plContext.qualityDS = 
+            tiffDriver->Create(plContext.qualityFilename,
+                               plContext.width, plContext.height,
+                               plContext.inputFiles.size() + 1,
+                               GDT_Float32, NULL);
+        plContext.qualityDS->SetProjection(
+            plContext.outputDS->GetProjectionRef());
+        
+        double geotransform[6];
+        plContext.outputDS->GetGeoTransform(geotransform);
+        plContext.qualityDS->SetGeoTransform(geotransform);
+
+        for( unsigned int i=0; i < plContext.inputFiles.size(); i++ )
+        {
+            plContext.qualityDS->GetRasterBand(i+2)->
+                SetDescription(plContext.inputFiles[i]->getFilename());
+        }
+
+        plContext.qualityDS->GetRasterBand(1)->
+            SetDescription(plContext.outputFilename);
+    }
+
+/* -------------------------------------------------------------------- */
 /*      Run through the image processing scanlines.                     */
 /* -------------------------------------------------------------------- */
     CPLString compositor = plContext.getStratParam("compositor", "quality");
@@ -222,6 +256,11 @@ int main(int argc, char **argv)
     pfnProgress(1.0, NULL, NULL);
 
     GDALClose(plContext.outputDS);
+
+    if( plContext.sourceTraceDS )
+        GDALClose(plContext.sourceTraceDS);
+    if( plContext.qualityDS )
+        GDALClose(plContext.qualityDS);
 
 /* -------------------------------------------------------------------- */
 /*      Reporting?                                                      */

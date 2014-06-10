@@ -133,6 +133,9 @@ class PLCContext {
     CPLString     sourceTraceFilename;
     GDALDataset  *sourceTraceDS;
 
+    CPLString     qualityFilename;
+    GDALDataset  *qualityDS;
+
     std::vector<PLCInput*> inputFiles;
 
     PLCLine *     getOutputLine(int line);

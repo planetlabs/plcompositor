@@ -39,12 +39,15 @@ void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
 /*      Establish which is the best source for each pixel.              */
 /* -------------------------------------------------------------------- */
     unsigned short *bestInput = lineObj->getSource();
-    std::vector<float> bestQuality(width, -1.0); 
+    float *bestQuality = lineObj->getQuality();
+
+    for(iPixel=0; iPixel < width; iPixel++) 
+        bestQuality[iPixel] = -1.0;
 
     for(i = 0; i < plContext->inputFiles.size(); i++ )
     {
         float *quality = inputLines[i]->getQuality();
-
+        
         for(iPixel=0; iPixel < width; iPixel++) 
         {
             if(quality[iPixel] > bestQuality[iPixel])
@@ -59,7 +62,7 @@ void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
         }
     }
 
-    plContext->qualityHistogram.accumulate(bestQuality.data(), width);
+    plContext->qualityHistogram.accumulate(bestQuality, width);
 
 /* -------------------------------------------------------------------- */
 /*      Build output with best pixels source for each pixel.            */
@@ -86,6 +89,18 @@ void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
         }
         else
             dst_alpha[iPixel] = 0;
+    }
+
+/* -------------------------------------------------------------------- */
+/*      Consider writing input qualities.                               */
+/* -------------------------------------------------------------------- */
+    if( plContext->qualityDS != NULL )
+    {
+        for(i = 0; i < plContext->inputFiles.size(); i++ )
+            plContext->qualityDS->GetRasterBand(i+2)->
+                RasterIO(GF_Write, 0, line, width, 1, 
+                         inputLines[i]->getQuality(), width, 1, GDT_Float32, 
+                         0, 0);
     }
 
 /* -------------------------------------------------------------------- */

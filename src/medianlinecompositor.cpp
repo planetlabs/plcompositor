@@ -94,13 +94,17 @@ void MedianLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
         for(i = 0; i < plContext->inputFiles.size(); i++ )
         {
             float *quality = inputQualities[i];
-            
+
             if(quality[iPixel] >= thresholdQuality)
             {
                 candidates[activeCandidates].inputFile = i;
                 candidates[activeCandidates].quality = quality[iPixel];
                 activeCandidates++;
             }
+            
+            if( plContext->isDebugPixel(iPixel, line) )
+                printf( "Quality from input %d @ %d,%d is %.8f\n", 
+                        i, iPixel, line, quality[iPixel] );
         }
 
         if( activeCandidates > 1 )
@@ -113,10 +117,21 @@ void MedianLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
                 MAX(0,MIN(activeCandidates-1,
                           ((int) floor(activeCandidates*medianRatio))));
             bestInput[iPixel] = candidates[bestCandidate].inputFile + 1;
-            bestQuality[iPixel] = candidates[bestInput[iPixel]-1].quality;
+            bestQuality[iPixel] = candidates[bestCandidate].quality;
 
             float countAsFloat = activeCandidates;
             activeCandidatesHistogram.accumulate(&countAsFloat, 1);
+
+            if( plContext->isDebugPixel(iPixel, line) )
+                printf( "Selected quality %.8f from input %d @ %d,%d from %d active candidates.\n", 
+                        bestQuality[iPixel], bestInput[iPixel]-1, iPixel, line,
+                        activeCandidates );
+        }
+        else
+        {
+            if( plContext->isDebugPixel(iPixel, line) )
+                printf("No active candidates @ %d,%d\n", 
+                       iPixel, line );
         }
     }
 

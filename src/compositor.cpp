@@ -231,8 +231,6 @@ int main(int argc, char **argv)
 /* -------------------------------------------------------------------- */
 /*      Run through the image processing scanlines.                     */
 /* -------------------------------------------------------------------- */
-    CPLString compositor = plContext.getStratParam("compositor", "quality");
-
     for(int line=0; line < plContext.outputDS->GetRasterYSize(); line++ )
     {
         pfnProgress(line / (double) plContext.height, NULL, NULL);
@@ -240,14 +238,7 @@ int main(int argc, char **argv)
         plContext.line = line;
         PLCLine *lineObj = plContext.getOutputLine(line);
 
-        if( EQUAL(compositor,"quality") )
-            QualityLineCompositor(&plContext, line, lineObj );
-        else if( EQUAL(compositor,"median") )
-            MedianLineCompositor(&plContext, line, lineObj );
-        else
-            CPLError(CE_Fatal, CPLE_AppDefined,
-                     "Unrecognized compositor '%s'.",
-                     compositor.c_str());
+        LineCompositor(&plContext, line, lineObj );
 
         plContext.writeOutputLine(line, lineObj);
         

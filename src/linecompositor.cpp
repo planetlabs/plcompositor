@@ -29,17 +29,18 @@ public:
 };
 
 /************************************************************************/
-/*                       MedianLineCompositor()                         */
+/*                           LineCompositor()                           */
 /************************************************************************/
 
 /**
- * \brief Median filtered compositor.
+ * \brief Line compositor.
  *
- * This compositor selects the median valued pixel from the stack 
- * based on quality *after* discarding very low quality candidates. 
+ * Composite one scanline.  The "quality_percentile" value determines what
+ * input pixel to use based on a review of qualities - 100 means highest 
+ * quality, and 50 would be median.
  */
 
-void MedianLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
+void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
 
 {
     std::vector<PLCLine *> inputLines;
@@ -59,11 +60,25 @@ void MedianLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
         activeCandidatesHistogram.counts.resize(plContext->inputFiles.size()+2);
         
         thresholdQuality = atof(
-            plContext->getStratParam("median_quality_threshold", "0.00001"));
+            plContext->getStratParam("quality_threshold", "0.00001"));
 
-        // 0.5 is true median, 1.0 is best quality, 0.0 is worst quality.
+        CPLString default_percentile;
+        if( EQUAL(plContext->getStratParam("compositor", "quality"),
+                  "quality") )
+            default_percentile = "100";
+        else
+            default_percentile = "50";
+
+        // 50 is true median, 100 is best quality, 0 is worst quality.
         medianRatio = atof(
-            plContext->getStratParam("median_ratio", "0.5"));
+            plContext->getStratParam("quality_percentile", 
+                                     default_percentile)) / 100.0;
+
+        // median_ratio is here for backwards compatability, quality_percentile
+        // Eventually it should be removed.
+        if( plContext->getStratParam("median_ratio", NULL) != NULL )
+            medianRatio = atof(
+                plContext->getStratParam("median_ratio", NULL));
     }
 
 /* -------------------------------------------------------------------- */
@@ -107,6 +122,8 @@ void MedianLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
                         i, iPixel, line, quality[iPixel] );
         }
 
+        // TODO: we could just pick the "max" if medianRatio is 1.0 and
+        // optimize out the sorting, and tracking candidates. 
         if( activeCandidates > 1 )
             std::sort(candidates.begin(),
                       candidates.begin() + activeCandidates);

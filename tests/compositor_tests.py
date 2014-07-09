@@ -222,7 +222,7 @@ class Tests(unittest.TestCase):
             '-q',
             '-s', 'quality', 'darkest',
             '-s', 'compositor', 'median',
-            '-s', 'median_ratio', '1.00000001',
+            '-s', 'quality_percentile', '100.0',
             '-o', test_file, 
             ]
 

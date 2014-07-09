@@ -1,14 +1,23 @@
 
 from gtk import *
 
+import sys
 import gview
 import string           
 import gvutils
 import GtkExtra
+import time
 import os
 import gviewapp
+import gvplot
 
 import gdal
+
+sys.path.append('.')
+
+import ev_profile
+from quality_hist_tool import QualityHistogramROITool
+
 
 LYR_GENERIC  = 0
 LYR_LANDSAT8 = 1
@@ -28,18 +37,56 @@ def layer_class(layer):
 
     return LYR_GENERIC
 
-    
 class MosaicViewerTool(gviewapp.Tool_GViewApp):
     
     def __init__(self,app=None):
         gviewapp.Tool_GViewApp.__init__(self,app)
         self.init_menu()
+        self.hist_tool = QualityHistogramROITool(app)
+        self.graphing = False
 
     def launch_dialog(self,*args):
-        self.win = MosaicDialog()
+        self.win = MosaicDialog(app=gview.app, tool=self)
         self.win.show()
         self.win.rescale_landsat_cb()
         self.win.gui_refresh()
+        self.track_view_activity()
+
+    def key_down_cb(self, viewarea, event):
+        try:
+            print 'down %s/%d' % (chr(event.keyval), event.keyval)
+        except:
+            print 'down <undefined>/%d' % event.keyval
+        if event.keyval == ord('g'):
+            print 'enable graphing'
+            self.graphing = True
+
+    def key_up_cb(self, viewarea, event):
+        try:
+            print 'up %s/%d' % (chr(event.keyval), event.keyval)
+        except:
+            print 'up <undefined>/%d' % event.keyval
+        if event.keyval == ord('g'):
+            print 'disable graphing'
+            self.graphing = False
+
+    def mouse_cb(self, viewarea, event):
+        print 'mouse event:', event.type
+
+        if event.type == 4:
+            print event.type, event.button, event.state
+        elif event.type == 3:
+            #print event.x, event.y
+            #print viewarea.map_pointer((event.x, event.y))
+            if self.graphing:
+                ev_profile.graph(viewarea.map_pointer((event.x, event.y)))
+
+    def track_view_activity(self):
+        view = gview.app.view_manager.get_active_view_window()
+        view.viewarea.connect('key-press-event', self.key_down_cb)
+        view.viewarea.connect('key-release-event', self.key_up_cb)
+        view.viewarea.connect('motion-notify-event', self.mouse_cb)
+        view.viewarea.connect('button-press-event', self.mouse_cb)
 
     def init_menu(self):
         self.menu_entries.set_entry("Tools/Mosaic Viewer",2,
@@ -47,7 +94,8 @@ class MosaicViewerTool(gviewapp.Tool_GViewApp):
 
 class MosaicDialog(GtkWindow):
 
-    def __init__(self,app=None):
+    def __init__(self,app=None, tool=None):
+        self.tool = tool
         self.updating = False
         GtkWindow.__init__(self)
         self.quality_layer = None
@@ -88,6 +136,7 @@ class MosaicDialog(GtkWindow):
         raster = gview.manager.get_dataset_raster( dataset, new_select)
         for isrc in range(3):
             self.quality_layer.set_source(isrc, raster, scale_min, scale_max)
+        self.tool.hist_tool.analyze_cb()
 
     def quality_refresh(self):
         assert self.quality_layer is not None
@@ -123,10 +172,17 @@ class MosaicDialog(GtkWindow):
 
         self.set_quality_band_cb()
 
+    def find_tool(self, tool_name):
+        for (name, tool_inst) in gview.app.Tool_List:
+            if name == tool_name:
+                return tool_inst
+        return None
+
     def create_gui(self):
 
+
         vbox = GtkVBox(spacing=5)
-        vbox.set_border_width(0)
+        vbox.set_border_width(10)
         self.add(vbox)
         
         # Add the Quality Band Selection Combo
@@ -136,6 +192,8 @@ class MosaicDialog(GtkWindow):
         self.band_combo = GtkCombo()
         hbox.pack_start(self.band_combo)
         self.band_combo.entry.connect('changed', self.set_quality_band_cb)
+        self.band_combo.set_popdown_strings( 
+            ['XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'])
 
         band_list = ['inactive']
         self.band_combo.set_popdown_strings( band_list )
@@ -172,10 +230,13 @@ class MosaicDialog(GtkWindow):
 
         # Add the Rescale and Close action buttons.
 	box2 = GtkHBox(spacing=10)
-	box2.set_border_width(10)
         vbox.add(box2)
         box2.show()
 
+        execute_btn = GtkButton("Histogram")
+        execute_btn.connect("clicked", self.tool.hist_tool.roipoitool_cb)
+	box2.pack_start(execute_btn)
+        
         execute_btn = GtkButton("Rescale")
         execute_btn.connect("clicked", self.rescale_landsat_cb)
 	box2.pack_start(execute_btn)
@@ -205,9 +266,6 @@ class MosaicDialog(GtkWindow):
                     layer.set_source(2, layer.get_data(0), 0.0, 1.0)
 
         self.gui_refresh()
-                
-                
-
                 
 
 TOOL_LIST = ['MosaicViewerTool']

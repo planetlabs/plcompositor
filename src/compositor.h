@@ -163,5 +163,4 @@ class QualityMethodBase {
 };
 
 
-void QualityLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj);
-void MedianLineCompositor(PLCContext *plContext, int line, PLCLine *lineObj);
+void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj);

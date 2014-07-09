@@ -11,8 +11,7 @@ OBJ =	src/plcinput.o \
 	src/plchistogram.o \
 	\
 	src/qualitymethodbase.o \
-	src/qualitylinecompositor.o \
-	src/medianlinecompositor.o \
+	src/linecompositor.o \
 	src/darkestquality.o \
 	src/greenestquality.o \
 	src/scenemeasurequality.o \

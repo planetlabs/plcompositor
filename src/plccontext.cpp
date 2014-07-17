@@ -173,6 +173,4 @@ void PLCContext::initializeQualityMethods(json_object *compositors)
 
         return;
     }
-
-
 }

@@ -90,7 +90,7 @@ void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
 /* -------------------------------------------------------------------- */
 /*      Compute qualities.                                              */
 /* -------------------------------------------------------------------- */
-    for(int iQM = 0; iQM < plContext->qualityMethods.size(); iQM++ )
+    for(unsigned int iQM = 0; iQM < plContext->qualityMethods.size(); iQM++ )
     {
         // TODO(check result status)
         plContext->qualityMethods[iQM]->computeStackQuality(plContext, inputLines);

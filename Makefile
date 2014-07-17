@@ -1,6 +1,7 @@
 
 LIBS = -L/home/warmerdam/bld/lib -L/usr/local/lib -lgdal
-INCLUDE = -I/home/warmerdam/bld/include -I/usr/include/gdal
+INCLUDE = -I/home/warmerdam/bld/include -I/usr/include/gdal \
+	-I/home/warmerdam/gdal/ogr/ogrsf_frmts/geojson/libjson
 OPTFLAGS = -Wall -g
 
 CPPFLAGS = $(INCLUDE) $(OPTFLAGS)
@@ -9,6 +10,7 @@ OBJ =	src/plcinput.o \
 	src/plcline.o \
 	src/plccontext.o \
 	src/plchistogram.o \
+	src/json_util.o \
 	\
 	src/qualitymethodbase.o \
 	src/linecompositor.o \
@@ -27,5 +29,4 @@ clean:
 
 check:	compositor
 	(cd tests; python compositor_tests.py)
-
 

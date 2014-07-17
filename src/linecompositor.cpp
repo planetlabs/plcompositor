@@ -82,14 +82,28 @@ void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
     }
 
 /* -------------------------------------------------------------------- */
-/*      Read inputs and compute qualities.                              */
+/*      Read inputs.                                                    */
 /* -------------------------------------------------------------------- */
     for(i = 0; i < plContext->inputFiles.size(); i++ )
-    {
         inputLines.push_back(plContext->inputFiles[i]->getLine(line));
-        plContext->inputFiles[i]->computeQuality(plContext, inputLines[i]);
-        inputQualities.push_back(inputLines[i]->getQuality());
+
+/* -------------------------------------------------------------------- */
+/*      Compute qualities.                                              */
+/* -------------------------------------------------------------------- */
+    for(int iQM = 0; iQM < plContext->qualityMethods.size(); iQM++ )
+    {
+        // TODO(check result status)
+        plContext->qualityMethods[iQM]->computeStackQuality(plContext, inputLines);
+
+        // opportunity here to save intermediate "New" quality measures.
+
+        // merge "newQuality()" back into "quality", and reset new Quality.
+        for(i = 0; i < inputLines.size(); i++ )
+            inputLines[i]->mergeNewQuality();
     }
+
+    for(i = 0; i < plContext->inputFiles.size(); i++ )
+        inputQualities.push_back(inputLines[i]->getQuality());
 
 /* -------------------------------------------------------------------- */
 /*      Establish which is the best source for each pixel.              */

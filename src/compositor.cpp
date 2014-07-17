@@ -62,7 +62,7 @@ int main(int argc, char **argv)
         else if( EQUAL(argv[i],"-i") )
         {
             // Consume a whole PLCInput definition.
-            PLCInput *input = new PLCInput();
+            PLCInput *input = new PLCInput(plContext.inputFiles.size());
             int argsConsumed = input->ConsumeArgs(argc-i, argv+i);
             i += argsConsumed-1;
             plContext.inputFiles.push_back(input);
@@ -164,6 +164,11 @@ int main(int argc, char **argv)
                      plContext.outputDS->GetRasterYSize());
         }
     }
+
+/* -------------------------------------------------------------------- */
+/*      Initialize the quality methods.                                 */
+/* -------------------------------------------------------------------- */
+    plContext.initializeQualityMethods(NULL);
 
 /* -------------------------------------------------------------------- */
 /*      Create source trace file if requested.                          */

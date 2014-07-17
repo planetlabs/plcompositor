@@ -22,57 +22,70 @@
 
 class SceneMeasureQuality : public QualityMethodBase 
 {
-    PLCInput *input;
-    float measureValue;
+    std::vector<float> measureValues;
 
 public:
     SceneMeasureQuality() : QualityMethodBase("scene_measure") {}
     ~SceneMeasureQuality() {}
 
     /********************************************************************/
-    QualityMethodBase *create(PLCContext* plContext, PLCInput* input) {
+    QualityMethodBase *create(PLCContext* plContext, json_object *node) {
 
         SceneMeasureQuality *obj = new SceneMeasureQuality();
-        obj->initialize(plContext, input);
+        obj->initialize(plContext, node);
         return obj;
     }
 
     
     /********************************************************************/
-    void initialize(PLCContext *plContext, PLCInput* input) {
-        input = input;
-
-        const char *measureName =
-            plContext->strategyParams.FetchNameValueDef("scene_measure", 
-                                                        "NULL");
-        measureValue = input->getQM(measureName);
-
-        if( measureValue < 0.0 )
+    void initialize(PLCContext *plContext, json_object *node) {
+        if( node == NULL )
         {
-            CPLError( CE_Fatal, CPLE_AppDefined,
-                      "Scene %s lacks quality measure %s.", 
-                      input->getFilename(),
-                      measureName);
+            const char *measureName =
+                plContext->strategyParams.FetchNameValueDef("scene_measure", 
+                                                            "NULL");
+            // Do we have rescaling values to try to bring this into 0.0 to 1.0?
+            CPLString minPrefix = "scale_min:";
+            double scaleMin = 
+                atof(plContext->strategyParams.FetchNameValueDef(
+                         (minPrefix + measureName).c_str(), "0.0"));
+            CPLString maxPrefix = "scale_max:";
+            double scaleMax = 
+                atof(plContext->strategyParams.FetchNameValueDef(
+                         (maxPrefix + measureName).c_str(), "1.0"));
+
+            for( unsigned int iInput=0; 
+                 iInput < plContext->inputFiles.size(); iInput++ )
+            {
+                PLCInput *input = plContext->inputFiles[iInput];
+                float measureValue = input->getQM(measureName);
+            
+                if( measureValue < 0.0 )
+                {
+                    CPLError( CE_Fatal, CPLE_AppDefined,
+                              "Scene %s lacks quality measure %s.", 
+                              input->getFilename(),
+                              measureName);
+                }
+
+                measureValue = (measureValue-scaleMin) / (scaleMax-scaleMin);
+
+                measureValues.push_back(measureValue);
+                CPLDebug("PLC", "Using quality %.3f for input %d\n", 
+                         measureValue, iInput);
+            }
         }
-
-        // Do we have rescaling values to try to bring this into 0.0 to 1.0?
-        CPLString minPrefix = "scale_min:";
-        double scaleMin = 
-            atof(plContext->strategyParams.FetchNameValueDef(
-                     (minPrefix + measureName).c_str(), "0.0"));
-        CPLString maxPrefix = "scale_max:";
-        double scaleMax = 
-            atof(plContext->strategyParams.FetchNameValueDef(
-                     (maxPrefix + measureName).c_str(), "1.0"));
-
-        measureValue = (measureValue - scaleMin) / (scaleMax - scaleMin);
+        else
+        {
+            CPLAssert( FALSE ); // need to implement json support.
+        }
     }
 
     /********************************************************************/
-    int computeQuality(PLCLine *lineObj) {
-
-        float *quality = lineObj->getQuality();
+    int computeQuality(PLCInput *input, PLCLine *lineObj) {
+        float *quality = lineObj->getNewQuality();
         int width = lineObj->getWidth();
+        float measureValue = measureValues[input->getInputIndex()];
 
         for(int iBand=0; iBand < lineObj->getBandCount(); iBand++)
         {

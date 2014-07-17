@@ -48,7 +48,7 @@ QualityMethodBase::~QualityMethodBase()
 /************************************************************************/
 
 QualityMethodBase *QualityMethodBase::CreateQualityFunction(
-    PLCContext *context, PLCInput *input, const char *name_in)
+    PLCContext *context, json_object *node, const char *name_in)
 
 {
     CPLString name(name_in);
@@ -60,5 +60,26 @@ QualityMethodBase *QualityMethodBase::CreateQualityFunction(
                   name.c_str() );
     }
 
-    return (*templateMap)[name]->create(context, input);
+    return (*templateMap)[name]->create(context, node);
+}
+
+/************************************************************************/
+/*                        computeStackQuality()                         */
+/*                                                                      */
+/*      Default stack quality, just invoke the per-input quality.       */
+/************************************************************************/
+
+int QualityMethodBase::computeStackQuality(PLCContext *context,
+                                           std::vector<PLCLine *> &lines)
+
+{
+    int result = TRUE;
+    
+    for( unsigned int iInput=0; iInput < lines.size(); iInput++)
+    {
+        if( !computeQuality(context->inputFiles[iInput], lines[iInput]) )
+            result = FALSE;
+    }
+
+    return result;
 }

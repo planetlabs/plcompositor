@@ -20,12 +20,11 @@
 /*                              PLCInput()                              */
 /************************************************************************/
 
-PLCInput::PLCInput()
+PLCInput::PLCInput(int inputIndex)
 {
     DS = NULL;
     cloudDS = NULL;
-    qualityMethod = NULL;
-    cloudQualityMethod = NULL;
+    this->inputIndex = inputIndex;
 }
 
 /************************************************************************/
@@ -85,18 +84,6 @@ void PLCInput::Initialize(PLCContext *plContext)
 {
     getDS();
     getCloudDS();
-
-    qualityMethod = QualityMethodBase::CreateQualityFunction(
-        plContext, 
-        this,
-        plContext->strategyParams.FetchNameValueDef("quality", "darkest"));
-    CPLAssert( qualityMethod );
- 
-    if( plContext->strategyParams.FetchNameValue("cloud_quality") )
-        cloudQualityMethod = QualityMethodBase::CreateQualityFunction(
-            plContext, 
-            this,
-            plContext->strategyParams.FetchNameValue("cloud_quality"));
 }
 
 /************************************************************************/
@@ -198,30 +185,4 @@ double PLCInput::getQM(const char *key, double defaultValue)
         return qualityMetrics[key];
     else
         return defaultValue;
-}
-
-/************************************************************************/
-/*                           computeQuality()                           */
-/*                                                                      */
-/*      Compute the line quality, and possibly the cloud quality in     */
-/*      which case the cloud quality is merged back into the core       */
-/*      quality.                                                        */
-/************************************************************************/
-
-int PLCInput::computeQuality(PLCContext *context, PLCLine *line)
-
-{
-    CPLAssert( qualityMethod != NULL );
-    
-    if( !qualityMethod->computeQuality(line) )
-        return FALSE;
-
-    if( cloudQualityMethod != NULL )
-    {
-        if( !cloudQualityMethod->computeQuality(line) )
-            return FALSE;
-        line->mergeCloudQuality();
-    }
-
-    return TRUE;
 }

@@ -185,6 +185,14 @@ void PLCContext::initializeQualityMethods(json_object *compositors)
         CPLAssert( method != NULL );
         qualityMethods.push_back(method);
 
+        if(getStratParam("quality_file") != NULL)
+        {
+            method = QualityMethodBase::CreateQualityFunction(
+                this, NULL, "qualityfromfile");
+            CPLAssert( method != NULL );
+            qualityMethods.push_back(method);
+        }
+
         if( EQUAL(getStratParam("compositor",""),"median")
             || getStratParam("median_ratio") != NULL
             || getStratParam("quality_percentile") != NULL )

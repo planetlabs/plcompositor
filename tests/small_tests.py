@@ -8,6 +8,7 @@ import traceback
 from osgeo import gdal, gdal_array
 
 TEMPLATE_GRAY = 'data/2x2_gray_template.tif'
+TEMPLATE_RGB  = 'data/2x2_rgb_template.tif'
 TEMPLATE_RGBA = 'data/2x2_rgba_template.tif'
 
 class Tests(unittest.TestCase):
@@ -91,6 +92,33 @@ class Tests(unittest.TestCase):
         self.run_compositor(args)
 
         self.compare_file(test_file, [[0, 1], [3, 4]])
+
+        self.clean_files()
+        
+    def test_small_darkest_rgb(self):
+        test_file = self.make_file(TEMPLATE_RGB)
+        args = [
+            '-q',
+            '-s', 'quality', 'darkest',
+            '-o', test_file, 
+            '-i',
+            self.make_file(TEMPLATE_RGB, 
+                           [[[0, 1], [3, 4]],
+                            [[0, 1], [3, 4]],
+                            [[0, 1], [3, 4]]]),
+            '-i',
+            self.make_file(TEMPLATE_RGB, 
+                           [[[9, 8], [6, 5]],
+                            [[9, 8], [6, 5]],
+                            [[9, 8], [6, 5]]]),
+            ]
+
+        self.run_compositor(args)
+
+        self.compare_file(test_file, 
+                          [[[0, 1], [3, 4]], 
+                           [[0, 1], [3, 4]], 
+                           [[0, 1], [3, 4]]])
 
         self.clean_files()
         

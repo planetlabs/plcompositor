@@ -80,14 +80,14 @@ class Tests(unittest.TestCase):
             '-s', 'quality', 'darkest',
             '-o', test_file, 
             '-i', 
-            self.make_file(TEMPLATE_GRAY, [[0, 1], [3, 4]]),
+            self.make_file(TEMPLATE_GRAY, [[0, 1], [6, 5]]),
             '-i',
-            self.make_file(TEMPLATE_GRAY, [[9, 8], [6, 5]]),
+            self.make_file(TEMPLATE_GRAY, [[9, 8], [2, 3]]),
             ]
 
         self.run_compositor(args)
 
-        self.compare_file(test_file, [[0, 1], [3, 4]])
+        self.compare_file(test_file, [[0, 1], [2, 3]])
 
         self.clean_files()
         
@@ -99,12 +99,12 @@ class Tests(unittest.TestCase):
             '-o', test_file, 
             '-i',
             self.make_file(TEMPLATE_RGB, 
-                           [[[0, 1], [3, 4]],
-                            [[0, 1], [3, 4]],
-                            [[0, 1], [3, 4]]]),
+                           [[[9, 1], [3, 0]],
+                            [[0, 1], [3, 0]],
+                            [[0, 1], [3, 9]]]),
             '-i',
             self.make_file(TEMPLATE_RGB, 
-                           [[[9, 8], [6, 5]],
+                           [[[0, 8], [6, 5]],
                             [[9, 8], [6, 5]],
                             [[9, 8], [6, 5]]]),
             ]
@@ -112,9 +112,9 @@ class Tests(unittest.TestCase):
         self.run_compositor(args)
 
         self.compare_file(test_file, 
-                          [[[0, 1], [3, 4]], 
-                           [[0, 1], [3, 4]], 
-                           [[0, 1], [3, 4]]])
+                          [[[9, 1], [3, 0]], 
+                           [[0, 1], [3, 0]], 
+                           [[0, 1], [3, 9]]])
 
         self.clean_files()
         

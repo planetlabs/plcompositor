@@ -47,7 +47,6 @@ class PLCLine {
     unsigned short  *getSource();
     float  *getQuality();
     float  *getNewQuality();
-    void    mergeNewQuality();
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -122,6 +121,7 @@ class PLCContext {
 
     std::vector<int> debugPixels;
     int           isDebugPixel(int pixel, int line);
+    int           isDebugLine(int line);
     
     CPLStringList strategyParams;
     const char   *getStratParam(const char *name, const char *def=NULL) {
@@ -160,6 +160,8 @@ class QualityMethodBase {
     virtual int computeQuality(PLCInput *, PLCLine *) = 0;
     virtual int computeStackQuality(PLCContext *, std::vector<PLCLine *>&);
     //virtual int computeStackQuality(PLContext *, std::vector<PLCLine *>&);
+
+    virtual void mergeQuality(PLCInput *, PLCLine *);
 
     virtual const char *getName() { return this->name; }
 

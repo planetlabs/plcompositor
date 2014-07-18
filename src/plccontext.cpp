@@ -142,6 +142,20 @@ int PLCContext::isDebugPixel(int pixel, int line)
 }
 
 /************************************************************************/
+/*                            isDebugLine()                             */
+/************************************************************************/
+int PLCContext::isDebugLine(int line)
+{
+    for( unsigned int i = 0; i < debugPixels.size(); i += 2 )
+    {
+        if( debugPixels[i+1] == line )
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
+/************************************************************************/
 /*                      initializeQualityMethods()                      */
 /************************************************************************/
 
@@ -170,6 +184,16 @@ void PLCContext::initializeQualityMethods(json_object *compositors)
         
         CPLAssert( method != NULL );
         qualityMethods.push_back(method);
+
+        if( EQUAL(getStratParam("compositor",""),"median")
+            || getStratParam("median_ratio") != NULL
+            || getStratParam("quality_percentile") != NULL )
+        {
+            method = QualityMethodBase::CreateQualityFunction(
+                this, NULL, "percentile");
+            CPLAssert( method != NULL );
+            qualityMethods.push_back(method);
+        }
 
         return;
     }

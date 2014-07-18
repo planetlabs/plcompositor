@@ -149,25 +149,3 @@ float *PLCLine::getNewQuality()
 
     return newQuality;
 }
-
-/************************************************************************/
-/*                         mergeNewQuality()                            */
-/************************************************************************/
-
-void PLCLine::mergeNewQuality()
-
-{
-    getQuality();
-    getNewQuality();
-
-    for(int i=0; i < width; i++)
-    {
-        if( newQuality[i] < 0.0 || quality[i] < 0.0 )
-            quality[i] = -1.0;
-        else
-            quality[i] = quality[i] * newQuality[i];
-
-        // reset new quality to default.
-        newQuality[i] = 1.0;
-    }
-}

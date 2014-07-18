@@ -83,3 +83,27 @@ int QualityMethodBase::computeStackQuality(PLCContext *context,
 
     return result;
 }
+
+/************************************************************************/
+/*                            mergeQuality()                            */
+/*                                                                      */
+/*      Default multiplicative merge of new quality into old quality.   */
+/************************************************************************/
+
+void QualityMethodBase::mergeQuality(PLCInput *input, PLCLine *line)
+
+{
+    float *quality = line->getQuality();
+    float *newQuality = line->getNewQuality();
+
+    for(int i=0; i < line->getWidth(); i++)
+    {
+        if( newQuality[i] < 0.0 || quality[i] < 0.0 )
+            quality[i] = -1.0;
+        else
+            quality[i] = quality[i] * newQuality[i];
+
+        // reset new quality to default.
+        newQuality[i] = 1.0;
+    }
+}

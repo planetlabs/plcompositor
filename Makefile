@@ -17,7 +17,8 @@ OBJ =	src/plcinput.o \
 	src/darkestquality.o \
 	src/greenestquality.o \
 	src/scenemeasurequality.o \
-	src/landsat8cloudquality.o 
+	src/landsat8cloudquality.o \
+	src/percentilequality.o
 
 compositor:	src/compositor.o $(OBJ)
 	g++ -o compositor src/compositor.o $(OBJ) $(LIBS)

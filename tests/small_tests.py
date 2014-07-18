@@ -15,10 +15,6 @@ class Tests(unittest.TestCase):
 
     def setUp(self):
         self.temp_test_files = []
-        # Ensure we have saojose data unpacked.
-        if not os.path.exists('saojose'):
-            self.fetch_data('saojose_l8_chip.zip')
-            ZipFile('saojose_l8_chip.zip', 'r').extractall()
 
     def tearDown(self):
         pass

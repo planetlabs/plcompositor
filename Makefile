@@ -1,7 +1,8 @@
 
-LIBS = -L/home/warmerdam/bld/lib -L/usr/local/lib -lgdal
+LIBS = -L/home/warmerdam/bld/lib -L/usr/local/lib -lgdal -ljson
 INCLUDE = -I/home/warmerdam/bld/include -I/usr/include/gdal \
-	-I/home/warmerdam/gdal/ogr/ogrsf_frmts/geojson/libjson
+	-I/usr/include/json
+
 OPTFLAGS = -Wall -g
 
 CPPFLAGS = $(INCLUDE) $(OPTFLAGS)

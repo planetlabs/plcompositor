@@ -7,8 +7,8 @@ import traceback
 
 from osgeo import gdal, gdal_array
 
-TEMPLATE_GRAY = '2x2_gray_template.tif'
-TEMPLATE_RGBA = '2x2_rgba_template.tif'
+TEMPLATE_GRAY = 'data/2x2_gray_template.tif'
+TEMPLATE_RGBA = 'data/2x2_rgba_template.tif'
 
 class Tests(unittest.TestCase):
 

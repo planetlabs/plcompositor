@@ -29,17 +29,16 @@ public:
     ~GreenQuality() {}
 
     /********************************************************************/
-    QualityMethodBase *create(PLCContext* context, PLCInput* input) {
+    QualityMethodBase *create(PLCContext* context, json_object *node) {
 
         GreenQuality *obj = new GreenQuality();
-        obj->input = input;
         return obj;
     }
 
     /********************************************************************/
-    int computeQuality(PLCLine *lineObj) {
+    int computeQuality(PLCInput *input, PLCLine *lineObj) {
 
-        float *quality = lineObj->getQuality();
+        float *quality = lineObj->getNewQuality();
         int width = lineObj->getWidth();
 
         if( lineObj->getBandCount() < 3 )

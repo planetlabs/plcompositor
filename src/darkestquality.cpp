@@ -29,17 +29,15 @@ public:
     ~DarkQuality() {}
 
     /********************************************************************/
-    QualityMethodBase *create(PLCContext* context, PLCInput* input) {
-
+    QualityMethodBase *create(PLCContext* context, json_object *node) {
         DarkQuality *obj = new DarkQuality();
-        obj->input = input;
         return obj;
     }
 
     /********************************************************************/
-    int computeQuality(PLCLine *lineObj) {
+    int computeQuality(PLCInput *input, PLCLine *lineObj) {
 
-        float *quality = lineObj->getQuality();
+        float *quality = lineObj->getNewQuality();
         int width = lineObj->getWidth();
 
         for(int iBand=0; iBand < lineObj->getBandCount(); iBand++)

@@ -15,18 +15,6 @@
  */
 
 #include "compositor.h"
-#include <algorithm>
-
-// used to sort for median.
-class InputQualityPair {
-public:
-    int inputFile;
-    float quality;
-    
-    bool operator< (const InputQualityPair &rhs) const {
-        return this->quality < rhs.quality;
-    }
-};
 
 /************************************************************************/
 /*                           LineCompositor()                           */
@@ -48,48 +36,66 @@ void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
     std::vector<float*> inputQualities;
 
 /* -------------------------------------------------------------------- */
-/*      Initialization logic.                                           */
-/* -------------------------------------------------------------------- */
-    static PLCHistogram activeCandidatesHistogram;
-    static float thresholdQuality;
-    static float medianRatio;
-
-    if( line == 0 )
-    {
-        activeCandidatesHistogram.scaleMax = plContext->inputFiles.size();
-        activeCandidatesHistogram.counts.resize(plContext->inputFiles.size()+2);
-        
-        thresholdQuality = atof(
-            plContext->getStratParam("quality_threshold", "0.00001"));
-
-        CPLString default_percentile;
-        if( EQUAL(plContext->getStratParam("compositor", "quality"),
-                  "quality") )
-            default_percentile = "100";
-        else
-            default_percentile = "50";
-
-        // 50 is true median, 100 is best quality, 0 is worst quality.
-        medianRatio = atof(
-            plContext->getStratParam("quality_percentile", 
-                                     default_percentile)) / 100.0;
-
-        // median_ratio is here for backwards compatability, quality_percentile
-        // Eventually it should be removed.
-        if( plContext->getStratParam("median_ratio", NULL) != NULL )
-            medianRatio = atof(
-                plContext->getStratParam("median_ratio", NULL));
-    }
-
-/* -------------------------------------------------------------------- */
-/*      Read inputs and compute qualities.                              */
+/*      Read inputs.                                                    */
 /* -------------------------------------------------------------------- */
     for(i = 0; i < plContext->inputFiles.size(); i++ )
-    {
         inputLines.push_back(plContext->inputFiles[i]->getLine(line));
-        plContext->inputFiles[i]->computeQuality(plContext, inputLines[i]);
-        inputQualities.push_back(inputLines[i]->getQuality());
+
+/* -------------------------------------------------------------------- */
+/*      Compute qualities.                                              */
+/* -------------------------------------------------------------------- */
+    for(unsigned int iQM = 0; iQM < plContext->qualityMethods.size(); iQM++ )
+    {
+        // TODO(check result status)
+        plContext->qualityMethods[iQM]->computeStackQuality(plContext, inputLines);
+
+        if( plContext->isDebugLine(line) )
+        {
+            for(iPixel=0; iPixel < width; iPixel++)
+            {
+                if( plContext->isDebugPixel(iPixel, line) )
+                {
+                    for( i=0; i < inputLines.size(); i++ )
+                    {
+                        printf( "Input %d quality is %.5f @ %dx%d for quality phase %d.\n", 
+                                i+1,
+                                inputLines[i]->getNewQuality()[iPixel], 
+                                iPixel, line, iQM );
+                    }
+                }
+            }
+        }
+
+        // opportunity here to save intermediate "New" quality measures.
+
+        // merge "newQuality()" back into "quality", and reset new Quality.
+        for(i = 0; i < inputLines.size(); i++)
+        {
+            plContext->qualityMethods[iQM]->mergeQuality(
+                plContext->inputFiles[i], inputLines[i]);
+        }
+
+        if( plContext->isDebugLine(line) )
+        {
+            for(iPixel=0; iPixel < width; iPixel++)
+            {
+                if( plContext->isDebugPixel(iPixel, line) )
+                {
+                    for( i=0; i < inputLines.size(); i++ )
+                    {
+                        printf( "Input %d quality is %.5f @ %dx%d after merge for quality phase %d.\n", 
+                                i+1,
+                                inputLines[i]->getQuality()[iPixel], 
+                                iPixel, line, iQM );
+                    }
+                }
+            }
+        }
+
     }
+
+    for(i = 0; i < plContext->inputFiles.size(); i++ )
+        inputQualities.push_back(inputLines[i]->getQuality());
 
 /* -------------------------------------------------------------------- */
 /*      Establish which is the best source for each pixel.              */
@@ -97,58 +103,33 @@ void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
     unsigned short *bestInput = lineObj->getSource();
     float *bestQuality = lineObj->getQuality();
 
-    std::vector<InputQualityPair> candidates;
-    candidates.resize(plContext->inputFiles.size());
-
     for(iPixel=0; iPixel < width; iPixel++)
     {
-        int activeCandidates = 0;
-
         bestQuality[iPixel] = -1.0;
+        bestInput[iPixel] = 0;
 
         for(i = 0; i < plContext->inputFiles.size(); i++ )
         {
             float *quality = inputQualities[i];
 
-            if(quality[iPixel] >= thresholdQuality)
+            if(quality[iPixel] > bestQuality[iPixel])
             {
-                candidates[activeCandidates].inputFile = i;
-                candidates[activeCandidates].quality = quality[iPixel];
-                activeCandidates++;
+                bestQuality[iPixel] = quality[iPixel];
+                bestInput[iPixel] = i+1;
             }
-            
-            if( plContext->isDebugPixel(iPixel, line) )
-                printf( "Quality from input %d @ %d,%d is %.8f\n", 
-                        i, iPixel, line, quality[iPixel] );
         }
 
-        // TODO: we could just pick the "max" if medianRatio is 1.0 and
-        // optimize out the sorting, and tracking candidates. 
-        if( activeCandidates > 1 )
-            std::sort(candidates.begin(),
-                      candidates.begin() + activeCandidates);
-
-        if( activeCandidates > 0 )
-        {
-            int bestCandidate = 
-                MAX(0,MIN(activeCandidates-1,
-                          ((int) floor(activeCandidates*medianRatio))));
-            bestInput[iPixel] = candidates[bestCandidate].inputFile + 1;
-            bestQuality[iPixel] = candidates[bestCandidate].quality;
-
-            float countAsFloat = activeCandidates;
-            activeCandidatesHistogram.accumulate(&countAsFloat, 1);
-
-            if( plContext->isDebugPixel(iPixel, line) )
-                printf( "Selected quality %.8f from input %d @ %d,%d from %d active candidates.\n", 
-                        bestQuality[iPixel], bestInput[iPixel]-1, iPixel, line,
-                        activeCandidates );
-        }
-        else
+        if( bestQuality[iPixel] < 0.0 )
         {
             if( plContext->isDebugPixel(iPixel, line) )
                 printf("No active candidates @ %d,%d\n", 
                        iPixel, line );
+        }
+        else
+        {
+            if( plContext->isDebugPixel(iPixel, line) )
+                printf("Best quality for %d,%d is %.5f from input %d.\n",
+                       iPixel, line, bestQuality[iPixel], bestInput[iPixel]);
         }
     }
 
@@ -193,10 +174,4 @@ void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
 /* -------------------------------------------------------------------- */
     for(i = 0; i < plContext->inputFiles.size(); i++ )
         delete inputLines[i];
-
-    if( plContext->verbose > 0 
-        && line == plContext->outputDS->GetRasterYSize()-1 )
-    {
-        activeCandidatesHistogram.report(stdout, "Active Candidates");
-    }
 }

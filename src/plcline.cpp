@@ -29,7 +29,7 @@ PLCLine::PLCLine(int width)
     source = NULL;
     alpha = NULL;
     quality = NULL;
-    cloudQuality = NULL;
+    newQuality = NULL;
 }
 
 /************************************************************************/
@@ -46,7 +46,7 @@ PLCLine::~PLCLine()
     CPLFree( source );
     CPLFree( alpha );
     CPLFree( quality );
-    CPLFree( cloudQuality );
+    CPLFree( newQuality );
 }
 
 /************************************************************************/
@@ -126,43 +126,26 @@ float *PLCLine::getQuality()
     if( quality == NULL )
     {
         quality = (float *) CPLCalloc(sizeof(float),width);
+        for( int i=0; i < width; i++ )
+            quality[i] = 1.0;
     }
 
     return quality;
 }
 
 /************************************************************************/
-/*                          getCloudQuality()                           */
+/*                          getNewQuality()                             */
 /************************************************************************/
 
-float *PLCLine::getCloudQuality()
+float *PLCLine::getNewQuality()
 
 {
-    if( cloudQuality == NULL )
+    if( newQuality == NULL )
     {
-        cloudQuality = (float *) CPLCalloc(sizeof(float),width);
+        newQuality = (float *) CPLCalloc(sizeof(float),width);
         for( int i=0; i < width; i++ )
-            cloudQuality[i] = 1.0;
+            newQuality[i] = 1.0;
     }
 
-    return cloudQuality;
-}
-
-/************************************************************************/
-/*                         mergeCloudQuality()                          */
-/************************************************************************/
-
-void PLCLine::mergeCloudQuality()
-
-{
-    getQuality();
-    getCloudQuality();
-
-    for(int i=0; i < width; i++)
-    {
-        if( cloudQuality[i] < 0.0 )
-            quality[i] = -1.0;
-        else
-            quality[i] = quality[i] * cloudQuality[i];
-    }
+    return newQuality;
 }

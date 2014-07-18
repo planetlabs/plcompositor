@@ -16,8 +16,9 @@
  * limitations under the License.
  */
 
-#include "gdal_priv.h"
 #include <map>
+#include "gdal_priv.h"
+#include "json.h"
 
 class QualityMethodBase;
 class PLCContext;
@@ -31,7 +32,7 @@ class PLCLine {
     unsigned short  *cloud;
     GByte  *alpha;
     float  *quality;
-    float  *cloudQuality;
+    float  *newQuality;
     unsigned short  *source;
     
   public:
@@ -45,9 +46,7 @@ class PLCLine {
     unsigned short  *getCloud();
     unsigned short  *getSource();
     float  *getQuality();
-    float  *getCloudQuality();
-
-    void    mergeCloudQuality();
+    float  *getNewQuality();
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -82,11 +81,11 @@ class PLCInput {
 
     PLCHistogram qualityHistogram;
     PLCHistogram cloudQualityHistogram;
+
+    int          inputIndex;
     
-    QualityMethodBase *qualityMethod;
-    QualityMethodBase *cloudQualityMethod;
   public:
-                 PLCInput();
+                 PLCInput(int inputIndex = -1);
     virtual     ~PLCInput();
 
     int          ConsumeArgs(int argc, char **argv);
@@ -102,7 +101,7 @@ class PLCInput {
 
     PLCLine     *getLine(int line);
 
-    int          computeQuality(PLCContext*, PLCLine*);
+    int          getInputIndex() { return inputIndex; }
 };
 
 ////////////////////////////////////////////////////////////////////////////
@@ -111,6 +110,7 @@ class PLCContext {
     PLCContext();
     virtual ~PLCContext();
 
+    void          initializeQualityMethods(json_object *);
     int           width;
     int           height;
     int           line;
@@ -121,6 +121,7 @@ class PLCContext {
 
     std::vector<int> debugPixels;
     int           isDebugPixel(int pixel, int line);
+    int           isDebugLine(int line);
     
     CPLStringList strategyParams;
     const char   *getStratParam(const char *name, const char *def=NULL) {
@@ -137,6 +138,7 @@ class PLCContext {
     GDALDataset  *qualityDS;
 
     std::vector<PLCInput*> inputFiles;
+    std::vector<QualityMethodBase*> qualityMethods;
 
     PLCLine *     getOutputLine(int line);
     void          writeOutputLine(int line, PLCLine *);
@@ -153,14 +155,25 @@ class QualityMethodBase {
   public:
     virtual ~QualityMethodBase();
 
-    virtual QualityMethodBase *create(PLCContext*, PLCInput*) = 0;
-    virtual int computeQuality(PLCLine *) = 0;
+    virtual QualityMethodBase *create(PLCContext*, json_object *node) = 0;
+
+    virtual int computeQuality(PLCInput *, PLCLine *) = 0;
+    virtual int computeStackQuality(PLCContext *, std::vector<PLCLine *>&);
+    //virtual int computeStackQuality(PLContext *, std::vector<PLCLine *>&);
+
+    virtual void mergeQuality(PLCInput *, PLCLine *);
 
     virtual const char *getName() { return this->name; }
 
-    static QualityMethodBase *CreateQualityFunction(PLCContext *, PLCInput*,
+    static QualityMethodBase *CreateQualityFunction(PLCContext *,
+                                                    json_object *node,
                                                     const char *name);
 };
 
-
 void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj);
+
+json_object *PLParseJson(const char *json_string);
+json_object *PLOFindJSONChild(json_object *json, const char *path, 
+                              int create = FALSE);
+CPLString PLGetJSONString(json_object *json, const char *path, 
+                          const char *default_value = "");

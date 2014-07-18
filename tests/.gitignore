@@ -1,4 +1,4 @@
-*.tif
+*_golden.tif
 saojose
 *.zip
 *.pyc

@@ -28,10 +28,14 @@ SAOJOSE_INPUTS = [
 class Tests(unittest.TestCase):
 
     def setUp(self):
+        self.temp_test_files = []
         # Ensure we have saojose data unpacked.
         if not os.path.exists('saojose'):
             self.fetch_data('saojose_l8_chip.zip')
             ZipFile('saojose_l8_chip.zip', 'r').extractall()
+
+    def tearDown(self):
+        pass
 
     def fetch_data(self, filename):
         # We eventually need some sort of md5 or date checking. 
@@ -69,10 +73,11 @@ class Tests(unittest.TestCase):
             msg += 'No Golden File Exists.\n'
             msg += '  Test Output: %s\n' % test_file
 
-        msg += '\n'
-        msg += 'If result looks ok, update with:\n'
-        msg += '  scp %s download.osgeo.org:/osgeo/download/plcompositor/%s' % (
-            test_file, golden_file)
+        if not golden_file.startswith('/'):
+            msg += '\n'
+            msg += 'If result looks ok, update with:\n'
+            msg += '  scp %s download.osgeo.org:/osgeo/download/plcompositor/%s' % (
+                test_file, golden_file)
 
         print msg
         
@@ -235,7 +240,6 @@ class Tests(unittest.TestCase):
         # but I don't yet know why.
         self.check('media_like_darkest_golden.tif', test_file)
         os.unlink(test_file)
-        
 
 if __name__ == '__main__':
     unittest.main()

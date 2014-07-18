@@ -30,5 +30,6 @@ clean:
 	rm -f $(OBJ) src/compositor.o compositor
 
 check:	compositor
-	(cd tests; python compositor_tests.py)
+	(cd tests; python small_tests.py)
+	(cd tests; python saojose_tests.py)
 

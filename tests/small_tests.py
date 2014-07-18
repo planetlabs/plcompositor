@@ -54,7 +54,6 @@ class Tests(unittest.TestCase):
             print test_data.tolist()
             raise Exception('No golden data, %s is:' % test_file)
 
-#        if not numpy.array_equal(test_data, numpy.array(golden_data)):
         if not numpy.allclose(test_data, numpy.array(golden_data),atol=tolerance):
             print '%s differs from golden data:' % test_file
             print

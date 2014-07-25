@@ -34,6 +34,43 @@ void Usage()
 }
 
 /************************************************************************/
+/*                              LoadJSON()                              */
+/************************************************************************/
+
+static void LoadJSON(PLCContext &plContext, const char *json_filename)
+
+{
+/* -------------------------------------------------------------------- */
+/*      Load and parse JSON.                                            */
+/* -------------------------------------------------------------------- */
+    FILE *fp = VSIFOpenL(json_filename, "r");
+    if( fp == NULL )
+    {
+        CPLError(CE_Fatal, CPLE_AppDefined,
+                 "Failed to open %s: %s", 
+                 json_filename, strerror(errno));
+    }
+
+    VSIFSeekL(fp, 0, SEEK_END);
+    vsi_l_offset length = VSIFTellL(fp);
+    VSIFSeekL(fp, 0, SEEK_SET);
+
+    char *raw_json = (char *) CPLCalloc(1,length+1);
+    VSIFReadL(raw_json, 1, length, fp);
+    VSIFCloseL(fp);
+
+    json_object *doc = PLParseJson(raw_json);
+    CPLFree(raw_json);
+    if( doc == NULL )
+        exit(1);
+
+/* -------------------------------------------------------------------- */
+/*      Configure context from json.                                    */
+/* -------------------------------------------------------------------- */
+    plContext.initializeFromJson(doc);
+}
+
+/************************************************************************/
 /*                                main()                                */
 /************************************************************************/
 
@@ -66,6 +103,13 @@ int main(int argc, char **argv)
             int argsConsumed = input->ConsumeArgs(argc-i, argv+i);
             i += argsConsumed-1;
             plContext.inputFiles.push_back(input);
+        }
+
+        else if( EQUAL(argv[i],"-j") && i < argc-1 )
+        {
+            // Consume and process JSON definition.
+            LoadJSON(plContext, argv[i+1]);
+            i += 1;
         }
 
         else if( EQUAL(argv[i],"-s") && i < argc-2 )
@@ -168,7 +212,8 @@ int main(int argc, char **argv)
 /* -------------------------------------------------------------------- */
 /*      Initialize the quality methods.                                 */
 /* -------------------------------------------------------------------- */
-    plContext.initializeQualityMethods(NULL);
+    if( plContext.qualityMethods.size() == 0 )
+        plContext.initializeQualityMethods(NULL);
 
 /* -------------------------------------------------------------------- */
 /*      Create source trace file if requested.                          */

@@ -168,7 +168,7 @@ void PLCContext::initializeQualityMethods(json_object *compositors)
         QualityMethodBase *method = NULL;
         CPLDebug("PLC", "initializeQualityMethods() - pre-json mode.");
 
-        if( strategyParams.FetchNameValue("cloud_quality") )
+        if( getStratParam("cloud_quality") != NULL )
         {
             method = QualityMethodBase::CreateQualityFunction(
                 this, NULL,
@@ -204,5 +204,56 @@ void PLCContext::initializeQualityMethods(json_object *compositors)
         }
 
         return;
+    }
+
+    // Initialize from JSON.
+    CPLAssert( json_object_get_type(compositors) == json_type_array );
+
+    int count = json_object_array_length(compositors);
+    for( int i=0; i < count; i++ ) 
+    {
+        json_object *method_json = json_object_array_get_idx(compositors, i);
+        CPLString methodClass = PLGetJSONString(method_json, "class");
+
+        CPLAssert(strlen(methodClass) > 0);
+
+        QualityMethodBase *method = 
+            QualityMethodBase::CreateQualityFunction(
+                this, method_json, methodClass);
+        CPLAssert( method != NULL );
+        qualityMethods.push_back(method);
+    }
+}
+
+/************************************************************************/
+/*                         initializeFromJson()                         */
+/*                                                                      */
+/*      Initialize the context from the JSON definition document.       */
+/*      Some options may already have been (or still to be) set from    */
+/*      commandline options as well as using the JSON.                  */
+/************************************************************************/
+
+void PLCContext::initializeFromJson(json_object *doc)
+
+{
+    outputFilename = PLGetJSONString(doc, "output_file", outputFilename);
+    sourceTraceFilename = 
+        PLGetJSONString(doc, "source_trace", sourceTraceFilename);
+    qualityFilename = PLGetJSONString(doc, "quality_output", qualityFilename);
+
+    initializeQualityMethods( PLFindJSONChild(doc, "compositors") );
+    
+    json_object *inputs = PLFindJSONChild(doc, "inputs");
+
+    if( inputs != NULL && json_object_get_type(inputs) == json_type_array)
+    {
+        int inputCount = json_object_array_length(inputs);
+        for( int i=0; i < inputCount; i++ ) 
+        {
+            // Consume a whole PLCInput definition.
+            PLCInput *input = new PLCInput(inputFiles.size());
+            input->ConsumeJson(json_object_array_get_idx(inputs, i));
+            inputFiles.push_back(input);
+        }
     }
 }

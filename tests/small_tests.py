@@ -4,6 +4,7 @@ import os
 import shutil
 import numpy
 import traceback
+import json
 
 from osgeo import gdal, gdal_array
 
@@ -77,6 +78,7 @@ class Tests(unittest.TestCase):
     def test_small_darkest_gray(self):
         test_file = self.make_file(TEMPLATE_GRAY)
         quality_out = 'sd_quality_out.tif'
+
         args = [
             '-q',
             '-s', 'quality', 'darkest',
@@ -98,6 +100,46 @@ class Tests(unittest.TestCase):
                           tolerance = 0.000001)
 
         os.unlink('sd_quality_out.tif')
+        self.clean_files()
+        
+    def test_small_darkest_gray_json(self):
+        test_file = self.make_file(TEMPLATE_GRAY)
+        quality_out = 'sdj_quality_out.tif'
+
+        control = {
+            'output_file': test_file,
+            'quality_output': quality_out,
+            'compositors': [
+                {
+                    'class': 'darkest',
+                    },
+                ],
+            'inputs': [
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY, [[0, 1], [6, 5]]),
+                    },
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY, [[9, 8], [2, 3]]),
+                    },
+                ],
+            }
+
+        open('small_darkest_gray.json','w').write(json.dumps(control))
+        args = [
+            '-q',
+            '-j', 'small_darkest_gray.json',
+            ]
+
+        self.run_compositor(args)
+
+        self.compare_file(test_file, [[0, 1], [2, 3]])
+        self.compare_file(quality_out, 
+                          [[[1.341333, 1.341322], [1.341312, 1.341302]], 
+                           [[1.341333, 1.341322], [1.341270, 1.341281]], 
+                           [[1.341239, 1.341249], [1.341312, 1.341302]]],
+                          tolerance = 0.000001)
+
+        os.unlink('sdj_quality_out.tif')
         self.clean_files()
         
     def test_small_darkest_rgb(self):

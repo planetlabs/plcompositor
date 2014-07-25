@@ -89,6 +89,7 @@ class PLCInput {
     virtual     ~PLCInput();
 
     int          ConsumeArgs(int argc, char **argv);
+    void         ConsumeJson(json_object *);
     void         Initialize(PLCContext *);
 
     double       getQM(const char *key, double defaultValue = -1.0);
@@ -110,6 +111,7 @@ class PLCContext {
     PLCContext();
     virtual ~PLCContext();
 
+    void          initializeFromJson(json_object *);
     void          initializeQualityMethods(json_object *);
     int           width;
     int           height;
@@ -173,7 +175,7 @@ class QualityMethodBase {
 void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj);
 
 json_object *PLParseJson(const char *json_string);
-json_object *PLOFindJSONChild(json_object *json, const char *path, 
-                              int create = FALSE);
+json_object *PLFindJSONChild(json_object *json, const char *path, 
+                             int create = FALSE);
 CPLString PLGetJSONString(json_object *json, const char *path, 
                           const char *default_value = "");

@@ -73,6 +73,34 @@ int PLCInput::ConsumeArgs(int argc, char **argv)
 }
 
 /************************************************************************/
+/*                            ConsumeJson()                             */
+/************************************************************************/
+
+void PLCInput::ConsumeJson(json_object *json)
+
+{
+    CPLAssert( json_object_get_type(json) == json_type_object );
+
+    json_object_iter it;
+    json_object_object_foreachC( json, it ) 
+    {
+        if( EQUAL(it.key, "filename") )
+        {
+            filename = PLGetJSONString(json, "filename");
+        } 
+        else if( EQUAL(it.key, "cloud_file") )
+        {
+            cloudMask = PLGetJSONString(json, "cloud_file");
+        }
+        else
+        {
+            // need to capture other sorts of parameters too!
+            qualityMetrics[it.key] = CPLAtof(PLGetJSONString(json, it.key));
+        }
+    }
+}
+
+/************************************************************************/
 /*                             Initialize()                             */
 /*                                                                      */
 /*      Ensure all arguments make sense, initialize quality methods,    */

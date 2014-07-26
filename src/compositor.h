@@ -20,6 +20,11 @@
 #include "gdal_priv.h"
 #include "json.h"
 
+// The following seems to be needed with some versions of libjson to get
+// the json_object_iter structure, but this can't be good karma.
+#include "json_object_private.h"
+
+
 class QualityMethodBase;
 class PLCContext;
 

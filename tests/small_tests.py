@@ -218,6 +218,45 @@ class Tests(unittest.TestCase):
 
         self.clean_files()
         
+    def test_percentile_json(self):
+        test_file = self.make_file(TEMPLATE_GRAY)
+
+        control = {
+            'output_file': test_file,
+            'compositors': [
+                {
+                    'class': 'darkest',
+                    },
+                {
+                    'class': 'percentile',
+                    'quality_percentile': 60.0,
+                    },
+                ],
+            'inputs': [
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY, [[9, 0], [1, 1]]),
+                    },
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY, [[5, 1], [9, 9]]),
+                    },
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY, [[1, 2], [9, 1]]),
+                    },
+                ],
+            }
+
+        open('percentile.json','w').write(json.dumps(control))
+        args = [
+            '-q',
+            '-j', 'percentile.json',
+            ]
+
+        self.run_compositor(args)
+
+        self.compare_file(test_file, [[5, 1], [9, 1]])
+
+        self.clean_files()
+        
     def test_quality_file(self):
         test_file = self.make_file(TEMPLATE_GRAY)
         quality_out = 'qf_test_quality.tif'

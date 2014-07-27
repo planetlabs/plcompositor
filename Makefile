@@ -3,7 +3,7 @@ LIBS = -L/home/warmerdam/bld/lib -L/usr/local/lib -lgdal -ljson
 INCLUDE = -I/home/warmerdam/bld/include -I/usr/include/gdal \
 	-I/usr/include/json
 
-OPTFLAGS = -Wall -g
+OPTFLAGS = -Wall -g -DDEBUG
 
 CPPFLAGS = $(INCLUDE) $(OPTFLAGS)
 

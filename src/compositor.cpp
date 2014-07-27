@@ -43,7 +43,7 @@ static void LoadJSON(PLCContext &plContext, const char *json_filename)
 /* -------------------------------------------------------------------- */
 /*      Load and parse JSON.                                            */
 /* -------------------------------------------------------------------- */
-    FILE *fp = VSIFOpenL(json_filename, "r");
+    VSILFILE *fp = VSIFOpenL(json_filename, "r");
     if( fp == NULL )
     {
         CPLError(CE_Fatal, CPLE_AppDefined,

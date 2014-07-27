@@ -60,7 +60,8 @@ public:
         }
         else
         {
-            CPLAssert( FALSE );
+            obj->percentileRatio = atof(
+                PLGetJSONString(node, "quality_percentile", "50")) / 100.0;
         }
         return obj;
     }

@@ -66,7 +66,7 @@ public:
     ~Landsat8CloudQuality() {}
 
     /********************************************************************/
-    QualityMethodBase *create(PLCContext* context, json_object *node) {
+    QualityMethodBase *create(PLCContext* context, WJElement node) {
 
         Landsat8CloudQuality *obj = new Landsat8CloudQuality();
         obj->context = context;

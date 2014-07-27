@@ -29,7 +29,7 @@ public:
     ~DarkQuality() {}
 
     /********************************************************************/
-    QualityMethodBase *create(PLCContext* context, json_object *node) {
+    QualityMethodBase *create(PLCContext* context, WJElement node) {
         DarkQuality *obj = new DarkQuality();
         return obj;
     }

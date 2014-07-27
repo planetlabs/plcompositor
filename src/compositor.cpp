@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+#include <wjreader.h>
+
 #include "compositor.h"
 #include "cpl_progress.h"
 
@@ -43,7 +45,7 @@ static void LoadJSON(PLCContext &plContext, const char *json_filename)
 /* -------------------------------------------------------------------- */
 /*      Load and parse JSON.                                            */
 /* -------------------------------------------------------------------- */
-    VSILFILE *fp = VSIFOpenL(json_filename, "r");
+    FILE *fp = fopen(json_filename, "r");
     if( fp == NULL )
     {
         CPLError(CE_Fatal, CPLE_AppDefined,
@@ -51,23 +53,23 @@ static void LoadJSON(PLCContext &plContext, const char *json_filename)
                  json_filename, strerror(errno));
     }
 
-    VSIFSeekL(fp, 0, SEEK_END);
-    vsi_l_offset length = VSIFTellL(fp);
-    VSIFSeekL(fp, 0, SEEK_SET);
+    WJReader readjson;
+    WJElement json;
 
-    char *raw_json = (char *) CPLCalloc(1,length+1);
-    VSIFReadL(raw_json, 1, length, fp);
-    VSIFCloseL(fp);
-
-    json_object *doc = PLParseJson(raw_json);
-    CPLFree(raw_json);
-    if( doc == NULL )
-        exit(1);
+    if(!(readjson = WJROpenFILEDocument(fp, NULL, 0)) ||
+       !(json = WJEOpenDocument(readjson, NULL, NULL, NULL))) {
+        fprintf(stderr, "json could not be read.\n");
+        exit(3);
+    }
 
 /* -------------------------------------------------------------------- */
 /*      Configure context from json.                                    */
 /* -------------------------------------------------------------------- */
-    plContext.initializeFromJson(doc);
+    plContext.initializeFromJson(json);
+
+    WJECloseDocument(json);
+    WJRCloseDocument(readjson);
+    fclose(fp);
 }
 
 /************************************************************************/

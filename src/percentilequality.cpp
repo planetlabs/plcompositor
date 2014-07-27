@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-#include "compositor.h"
 #include <algorithm>
+
+#include "compositor.h"
 
 /************************************************************************/
 /*                          PercentileQuality                           */
@@ -32,7 +33,7 @@ public:
     ~PercentileQuality() {}
 
     /********************************************************************/
-    QualityMethodBase *create(PLCContext* context, json_object *node) {
+    QualityMethodBase *create(PLCContext* context, WJElement node) {
         PercentileQuality *obj = new PercentileQuality();
         obj->targetQuality.resize(context->width);
 
@@ -60,8 +61,8 @@ public:
         }
         else
         {
-            obj->percentileRatio = atof(
-                PLGetJSONString(node, "quality_percentile", "50")) / 100.0;
+            obj->percentileRatio = WJEDouble(node, "quality_percentile", 
+                                             WJE_GET, 50.0) / 100.0;
         }
         return obj;
     }

@@ -18,12 +18,8 @@
 
 #include <map>
 #include "gdal_priv.h"
-#include "json.h"
 
-// The following seems to be needed with some versions of libjson to get
-// the json_object_iter structure, but this can't be good karma.
-#include "json_object_private.h"
-
+#include <wjelement.h>
 
 class QualityMethodBase;
 class PLCContext;
@@ -94,7 +90,7 @@ class PLCInput {
     virtual     ~PLCInput();
 
     int          ConsumeArgs(int argc, char **argv);
-    void         ConsumeJson(json_object *);
+    void         ConsumeJson(WJElement);
     void         Initialize(PLCContext *);
 
     double       getQM(const char *key, double defaultValue = -1.0);
@@ -116,8 +112,8 @@ class PLCContext {
     PLCContext();
     virtual ~PLCContext();
 
-    void          initializeFromJson(json_object *);
-    void          initializeQualityMethods(json_object *);
+    void          initializeFromJson(WJElement);
+    void          initializeQualityMethods(WJElement);
     int           width;
     int           height;
     int           line;
@@ -162,7 +158,7 @@ class QualityMethodBase {
   public:
     virtual ~QualityMethodBase();
 
-    virtual QualityMethodBase *create(PLCContext*, json_object *node) = 0;
+    virtual QualityMethodBase *create(PLCContext*, WJElement node) = 0;
 
     virtual int computeQuality(PLCInput *, PLCLine *) = 0;
     virtual int computeStackQuality(PLCContext *, std::vector<PLCLine *>&);
@@ -173,14 +169,8 @@ class QualityMethodBase {
     virtual const char *getName() { return this->name; }
 
     static QualityMethodBase *CreateQualityFunction(PLCContext *,
-                                                    json_object *node,
+                                                    WJElement node,
                                                     const char *name);
 };
 
 void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj);
-
-json_object *PLParseJson(const char *json_string);
-json_object *PLFindJSONChild(json_object *json, const char *path, 
-                             int create = FALSE);
-CPLString PLGetJSONString(json_object *json, const char *path, 
-                          const char *default_value = "");

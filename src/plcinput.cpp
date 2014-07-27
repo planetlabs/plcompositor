@@ -76,26 +76,25 @@ int PLCInput::ConsumeArgs(int argc, char **argv)
 /*                            ConsumeJson()                             */
 /************************************************************************/
 
-void PLCInput::ConsumeJson(json_object *json)
+void PLCInput::ConsumeJson(WJElement json)
 
 {
-    CPLAssert( json_object_get_type(json) == json_type_object );
-
-    json_object_iter it;
-    json_object_object_foreachC( json, it ) 
+    WJElement value = NULL;
+    for( value=json->child; value != NULL; value = value->next )
     {
-        if( EQUAL(it.key, "filename") )
+        if( EQUAL(value->name, "filename") )
         {
-            filename = PLGetJSONString(json, "filename");
+            filename = WJEString(json, value->name, WJE_GET, "");
         } 
-        else if( EQUAL(it.key, "cloud_file") )
+        else if( EQUAL(value->name, "cloud_file") )
         {
-            cloudMask = PLGetJSONString(json, "cloud_file");
+            cloudMask = WJEString(json, value->name, WJE_GET, "");
         }
         else
         {
             // need to capture other sorts of parameters too!
-            qualityMetrics[it.key] = CPLAtof(PLGetJSONString(json, it.key));
+            qualityMetrics[value->name] = 
+                WJEDouble(json, value->name, WJE_GET, 0.0);
         }
     }
 }

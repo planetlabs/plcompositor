@@ -97,3 +97,36 @@ CPLString PLGetJSONString(json_object *json, const char *path,
         return json_object_get_string(obj);
     }        
 }
+
+/************************************************************************/
+/*                         PLValidateJSONNode()                         */
+/*                                                                      */
+/*      Should be something like:                                       */
+/*        parm_name:[o,r]:[string,number,array,object],...              */
+/*                                                                      */
+/*      eg.                                                             */
+/*        "output_file:r:string,quality_file:o:string"                  */
+/************************************************************************/
+
+void PLValidateJSONNode(json_object *node, 
+                        const char *definition)
+
+{
+    CPLStringList parm_defs(CSLTokenizeString2(definition,",",0));
+    std::map<CPLString,CPLString> parmOptions;
+    std::map<CPLString,CPLString> parmTypes;
+    
+    for( int iParm=0; iParm < parm_defs.size(); iParm++ )
+    {
+        CPLStringList parts(CSLTokenizeString2(parm_defs[iParm], ":", 0));
+
+        CPLAssert(parts.size() == 3);
+        
+        parmOptions[parts[0]] = parts[1];
+        parmOptions[parts[0]] = parts[2];
+
+        
+    }
+                            
+}
+

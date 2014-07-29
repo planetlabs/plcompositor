@@ -1,10 +1,12 @@
 
-LIBS = -L/home/warmerdam/bld/lib -L/usr/local/lib -lgdal \
-	-lwjelement -lwjreader
-INCLUDE = -I/home/warmerdam/bld/include -I/usr/include/gdal \
-	-I/usr/local/include 
+LIBS = -L/home/warmerdam/bld/lib -L/usr/local/lib -L/usr/local/pl/lib \
+	-lgdal -lwjelement -lwjreader
+INCLUDE = -I/home/warmerdam/bld/include \
+	-I/usr/include/gdal \
+	-I/usr/local/include \
+	-I/usr/local/pl/include
 
-OPTFLAGS = -Wall -g -DDEBUG -Wno-write-strings -fpermissive
+OPTFLAGS = -Wall -g -DDEBUG
 
 CPPFLAGS = $(INCLUDE) $(OPTFLAGS)
 

@@ -6,9 +6,9 @@ INCLUDE = -I/home/warmerdam/bld/include \
 	-I/usr/local/include \
 	-I/usr/local/pl/include
 
-OPTFLAGS = -Wall -g -DDEBUG
+OPTFLAGS = -g -DDEBUG
 
-CPPFLAGS = $(INCLUDE) $(OPTFLAGS)
+CPPFLAGS = -Wall $(INCLUDE) $(OPTFLAGS)
 
 OBJ =	src/plcinput.o \
 	src/plcline.o \

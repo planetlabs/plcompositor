@@ -37,7 +37,7 @@ public:
     }
 
     /********************************************************************/
-    QualityMethodBase *create(PLCContext* context, json_object *node) {
+    QualityMethodBase *create(PLCContext* context, WJElement node) {
         QualityFromFile *obj = new QualityFromFile();
         obj->context = context;
         

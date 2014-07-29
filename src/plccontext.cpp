@@ -159,7 +159,7 @@ int PLCContext::isDebugLine(int line)
 /*                      initializeQualityMethods()                      */
 /************************************************************************/
 
-void PLCContext::initializeQualityMethods(json_object *compositors)
+void PLCContext::initializeQualityMethods(WJElement compositors)
 
 {
     // Backward compatability mode
@@ -206,20 +206,16 @@ void PLCContext::initializeQualityMethods(json_object *compositors)
         return;
     }
 
-    // Initialize from JSON.
-    CPLAssert( json_object_get_type(compositors) == json_type_array );
-
-    int count = json_object_array_length(compositors);
-    for( int i=0; i < count; i++ ) 
+    WJElement method_def = NULL;
+    while( (method_def = _WJEObject(compositors, "[]", WJE_GET, &method_def)) )
     {
-        json_object *method_json = json_object_array_get_idx(compositors, i);
-        CPLString methodClass = PLGetJSONString(method_json, "class");
+        CPLString methodClass = WJEString(method_def, "class", WJE_GET, NULL);
 
         CPLAssert(strlen(methodClass) > 0);
 
         QualityMethodBase *method = 
             QualityMethodBase::CreateQualityFunction(
-                this, method_json, methodClass);
+                this, method_def, methodClass);
         CPLAssert( method != NULL );
         qualityMethods.push_back(method);
     }
@@ -233,27 +229,23 @@ void PLCContext::initializeQualityMethods(json_object *compositors)
 /*      commandline options as well as using the JSON.                  */
 /************************************************************************/
 
-void PLCContext::initializeFromJson(json_object *doc)
+void PLCContext::initializeFromJson(WJElement doc)
 
 {
-    outputFilename = PLGetJSONString(doc, "output_file", outputFilename);
+    outputFilename = WJEString(doc, "output_file", WJE_GET, outputFilename);
     sourceTraceFilename = 
-        PLGetJSONString(doc, "source_trace", sourceTraceFilename);
-    qualityFilename = PLGetJSONString(doc, "quality_output", qualityFilename);
+        WJEString(doc, "source_trace", WJE_GET, sourceTraceFilename);
+    qualityFilename = 
+        WJEString(doc, "quality_output", WJE_GET, qualityFilename);
 
-    initializeQualityMethods( PLFindJSONChild(doc, "compositors") );
+    initializeQualityMethods( WJEArray(doc, "compositors", WJE_GET) );
     
-    json_object *inputs = PLFindJSONChild(doc, "inputs");
-
-    if( inputs != NULL && json_object_get_type(inputs) == json_type_array)
+    WJElement input_def = NULL;
+    while( (input_def = _WJEObject(doc, "inputs[]", WJE_GET, &input_def)) )
     {
-        int inputCount = json_object_array_length(inputs);
-        for( int i=0; i < inputCount; i++ ) 
-        {
-            // Consume a whole PLCInput definition.
-            PLCInput *input = new PLCInput(inputFiles.size());
-            input->ConsumeJson(json_object_array_get_idx(inputs, i));
-            inputFiles.push_back(input);
-        }
+        // Consume a whole PLCInput definition.
+        PLCInput *input = new PLCInput(inputFiles.size());
+        input->ConsumeJson(input_def);
+        inputFiles.push_back(input);
     }
 }

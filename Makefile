@@ -1,17 +1,19 @@
 
-LIBS = -L/home/warmerdam/bld/lib -L/usr/local/lib -lgdal -ljson
-INCLUDE = -I/home/warmerdam/bld/include -I/usr/include/gdal \
-	-I/usr/include/json
+LIBS = -L/home/warmerdam/bld/lib -L/usr/local/lib -L/usr/local/pl/lib \
+	-lgdal -lwjelement -lwjreader
+INCLUDE = -I/home/warmerdam/bld/include \
+	-I/usr/include/gdal \
+	-I/usr/local/include \
+	-I/usr/local/pl/include
 
-OPTFLAGS = -Wall -g -DDEBUG
+OPTFLAGS = -g -DDEBUG
 
-CPPFLAGS = $(INCLUDE) $(OPTFLAGS)
+CPPFLAGS = -Wall $(INCLUDE) $(OPTFLAGS)
 
 OBJ =	src/plcinput.o \
 	src/plcline.o \
 	src/plccontext.o \
 	src/plchistogram.o \
-	src/json_util.o \
 	\
 	src/qualitymethodbase.o \
 	src/linecompositor.o \

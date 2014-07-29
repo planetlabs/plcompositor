@@ -48,7 +48,7 @@ QualityMethodBase::~QualityMethodBase()
 /************************************************************************/
 
 QualityMethodBase *QualityMethodBase::CreateQualityFunction(
-    PLCContext *context, json_object *node, const char *name_in)
+    PLCContext *context, WJElement node, const char *name_in)
 
 {
     CPLString name(name_in);

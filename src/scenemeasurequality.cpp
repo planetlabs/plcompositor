@@ -29,7 +29,7 @@ public:
     ~SceneMeasureQuality() {}
 
     /********************************************************************/
-    QualityMethodBase *create(PLCContext* plContext, json_object *node) {
+    QualityMethodBase *create(PLCContext* plContext, WJElement node) {
 
         SceneMeasureQuality *obj = new SceneMeasureQuality();
         obj->initialize(plContext, node);
@@ -38,7 +38,7 @@ public:
 
     
     /********************************************************************/
-    void initialize(PLCContext *plContext, json_object *node) {
+    void initialize(PLCContext *plContext, WJElement node) {
         if( node == NULL )
         {
             const char *measureName =

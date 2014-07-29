@@ -29,7 +29,7 @@ public:
     ~GreenQuality() {}
 
     /********************************************************************/
-    QualityMethodBase *create(PLCContext* context, json_object *node) {
+    QualityMethodBase *create(PLCContext* context, WJElement node) {
 
         GreenQuality *obj = new GreenQuality();
         return obj;

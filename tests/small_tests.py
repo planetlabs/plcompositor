@@ -293,5 +293,57 @@ class Tests(unittest.TestCase):
         os.unlink(quality_out)
         self.clean_files()
         
+    def test_quality_file_json(self):
+        test_file = self.make_file(TEMPLATE_GRAY)
+        quality_out = 'qfj_test_quality.tif'
+
+        control = {
+            'output_file': test_file,
+            'quality_output': quality_out,
+            'compositors': [
+                {
+                    'class': 'darkest',
+                    },
+                {
+                    'class': 'qualityfromfile',
+                    'file_key': 'quality',
+                    'scale_min': 0.0,
+                    'scale_max': 2.0,
+                    },
+                ],
+            'inputs': [
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY, 
+                                               [[101, 101], [101, 101]]),
+                    'quality': self.make_file(TEMPLATE_FLOAT, 
+                                              [[0.5, 2.0], [-1.0, 0.01]]),
+                    },
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY, 
+                                               [[102, 102], [102, 102]]),
+                    'quality': self.make_file(TEMPLATE_FLOAT,
+                                              [[2.0, 1.8], [-1.0, 0.25]]),
+                    },
+                ],
+            }
+
+        open('quality_file.json','w').write(json.dumps(control))
+        args = [
+            '-q',
+            '-j', 'quality_file.json',
+            ]
+
+        self.run_compositor(args)
+
+        self.compare_file(test_file, [[102, 101], [0, 102]])
+        self.compare_file(quality_out, 
+                          [[[1.340, 1.340], [-1.0, 0.167]], 
+                           [[0.335, 1.340], [-1.0, 0.007]], 
+                           [[1.340, 1.206], [-1.0, 0.167]]],
+                          tolerance=0.001)
+
+        os.unlink(quality_out)
+        self.clean_files()
+        
 if __name__ == '__main__':
     unittest.main()

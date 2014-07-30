@@ -90,6 +90,10 @@ void PLCInput::ConsumeJson(WJElement json)
         {
             cloudMask = WJEString(json, value->name, WJE_GET, "");
         }
+        else if( value->type == WJR_TYPE_STRING )
+        {
+            parameters[value->name] = WJEString(json, value->name, WJE_GET, "");
+        }
         else
         {
             // need to capture other sorts of parameters too!
@@ -210,6 +214,19 @@ double PLCInput::getQM(const char *key, double defaultValue)
 {
     if(qualityMetrics.count(key) > 0)
         return qualityMetrics[key];
+    else
+        return defaultValue;
+}
+
+/************************************************************************/
+/*                              getParm()                               */
+/************************************************************************/
+
+const char *PLCInput::getParm(const char *key, const char *defaultValue)
+
+{
+    if(parameters.count(key) > 0)
+        return parameters[key].c_str();
     else
         return defaultValue;
 }

@@ -79,6 +79,7 @@ class PLCInput {
     GDALDataset *cloudDS;
     
     std::map <CPLString,double> qualityMetrics;
+    std::map <CPLString,CPLString> parameters;
 
     PLCHistogram qualityHistogram;
     PLCHistogram cloudQualityHistogram;
@@ -94,6 +95,7 @@ class PLCInput {
     void         Initialize(PLCContext *);
 
     double       getQM(const char *key, double defaultValue = -1.0);
+    const char  *getParm(const char *key, const char *defaultValue = NULL);
 
     const char  *getFilename() { return filename; }
     GDALDataset *getDS();

@@ -103,6 +103,7 @@ class Tests(unittest.TestCase):
         self.clean_files()
         
     def test_small_darkest_gray_json(self):
+        json_file = 'small_darkest_gray.json'
         test_file = self.make_file(TEMPLATE_GRAY)
         quality_out = 'sdj_quality_out.tif'
 
@@ -124,13 +125,8 @@ class Tests(unittest.TestCase):
                 ],
             }
 
-        open('small_darkest_gray.json','w').write(json.dumps(control))
-        args = [
-            '-q',
-            '-j', 'small_darkest_gray.json',
-            ]
-
-        self.run_compositor(args)
+        open(json_file,'w').write(json.dumps(control))
+        self.run_compositor([ '-q', '-j', json_file])
 
         self.compare_file(test_file, [[0, 1], [2, 3]])
         self.compare_file(quality_out, 
@@ -140,6 +136,7 @@ class Tests(unittest.TestCase):
                           tolerance = 0.000001)
 
         os.unlink('sdj_quality_out.tif')
+        os.unlink(json_file)
         self.clean_files()
         
     def test_small_darkest_rgb(self):
@@ -219,6 +216,7 @@ class Tests(unittest.TestCase):
         self.clean_files()
         
     def test_percentile_json(self):
+        json_file = 'percentile.json'
         test_file = self.make_file(TEMPLATE_GRAY)
 
         control = {
@@ -245,16 +243,11 @@ class Tests(unittest.TestCase):
                 ],
             }
 
-        open('percentile.json','w').write(json.dumps(control))
-        args = [
-            '-q',
-            '-j', 'percentile.json',
-            ]
-
-        self.run_compositor(args)
-
+        open(json_file, 'w').write(json.dumps(control))
+        self.run_compositor(['-q', '-j', json_file])
         self.compare_file(test_file, [[5, 1], [9, 1]])
 
+        os.unlink(json_file)
         self.clean_files()
         
     def test_quality_file(self):
@@ -294,6 +287,7 @@ class Tests(unittest.TestCase):
         self.clean_files()
         
     def test_quality_file_json(self):
+        json_file = 'quality_file.json'
         test_file = self.make_file(TEMPLATE_GRAY)
         quality_out = 'qfj_test_quality.tif'
 
@@ -327,13 +321,8 @@ class Tests(unittest.TestCase):
                 ],
             }
 
-        open('quality_file.json','w').write(json.dumps(control))
-        args = [
-            '-q',
-            '-j', 'quality_file.json',
-            ]
-
-        self.run_compositor(args)
+        open(json_file,'w').write(json.dumps(control))
+        self.run_compositor(['-q', '-j', json_file])
 
         self.compare_file(test_file, [[102, 101], [0, 102]])
         self.compare_file(quality_out, 
@@ -343,6 +332,7 @@ class Tests(unittest.TestCase):
                           tolerance=0.001)
 
         os.unlink(quality_out)
+        os.unlink(json_file)
         self.clean_files()
         
 if __name__ == '__main__':

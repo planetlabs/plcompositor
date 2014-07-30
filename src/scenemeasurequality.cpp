@@ -22,7 +22,10 @@
 
 class SceneMeasureQuality : public QualityMethodBase 
 {
+    PLCContext *plContext;
+    CPLString measureName;
     std::vector<float> measureValues;
+    double scaleMax, scaleMin;
 
 public:
     SceneMeasureQuality() : QualityMethodBase("scene_measure") {}
@@ -39,50 +42,62 @@ public:
     
     /********************************************************************/
     void initialize(PLCContext *plContext, WJElement node) {
+        this->plContext = plContext;
+
         if( node == NULL )
         {
-            const char *measureName =
+            measureName = 
                 plContext->strategyParams.FetchNameValueDef("scene_measure", 
                                                             "NULL");
             // Do we have rescaling values to try to bring this into 0.0 to 1.0?
             CPLString minPrefix = "scale_min:";
-            double scaleMin = 
+            scaleMin = 
                 atof(plContext->strategyParams.FetchNameValueDef(
                          (minPrefix + measureName).c_str(), "0.0"));
             CPLString maxPrefix = "scale_max:";
-            double scaleMax = 
+            scaleMax = 
                 atof(plContext->strategyParams.FetchNameValueDef(
                          (maxPrefix + measureName).c_str(), "1.0"));
-
-            for( unsigned int iInput=0; 
-                 iInput < plContext->inputFiles.size(); iInput++ )
-            {
-                PLCInput *input = plContext->inputFiles[iInput];
-                float measureValue = input->getQM(measureName);
-            
-                if( measureValue < 0.0 )
-                {
-                    CPLError( CE_Fatal, CPLE_AppDefined,
-                              "Scene %s lacks quality measure %s.", 
-                              input->getFilename(),
-                              measureName);
-                }
-
-                measureValue = (measureValue-scaleMin) / (scaleMax-scaleMin);
-
-                measureValues.push_back(measureValue);
-                CPLDebug("PLC", "Using quality %.3f for input %d\n", 
-                         measureValue, iInput);
-            }
         }
         else
         {
-            CPLAssert( FALSE ); // need to implement json support.
+            measureName = WJEString(node, "scene_measure", WJE_GET, "");
+            scaleMin = WJEDouble(node, "scale_min", WJE_GET, 0.0);
+            scaleMax = WJEDouble(node, "scale_max", WJE_GET, 1.0);
         }
     }
 
+
+    /********************************************************************/
+    void initializeFromInputFiles() {
+        for( unsigned int iInput=0; 
+             iInput < plContext->inputFiles.size(); iInput++ )
+        {
+            PLCInput *input = plContext->inputFiles[iInput];
+            float measureValue = input->getQM(measureName);
+            
+            if( measureValue < 0.0 )
+            {
+                CPLError( CE_Fatal, CPLE_AppDefined,
+                          "Scene %s lacks quality measure %s.", 
+                          input->getFilename(),
+                          measureName.c_str());
+            }
+
+            measureValue = (measureValue-scaleMin) / (scaleMax-scaleMin);
+
+            measureValues.push_back(measureValue);
+            CPLDebug("PLC", "Using quality %.3f for input %d\n", 
+                     measureValue, iInput);
+        }
+    }
+
+
     /********************************************************************/
     int computeQuality(PLCInput *input, PLCLine *lineObj) {
+        if( measureValues.size() == 0 )
+            initializeFromInputFiles();
+
         float *quality = lineObj->getNewQuality();
         int width = lineObj->getWidth();
         float measureValue = measureValues[input->getInputIndex()];

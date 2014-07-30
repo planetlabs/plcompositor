@@ -3,6 +3,7 @@ import sys
 import os
 import shutil
 import urllib
+import json
 from zipfile import ZipFile
 
 from osgeo import gdal
@@ -175,6 +176,43 @@ class Tests(unittest.TestCase):
 
         self.check('newest_golden.tif', test_file)
         os.unlink(test_file)
+        
+    def test_newest_json(self):
+        json_file = 'quality_file.json'
+        test_file = 'newest_test.tif'
+        shutil.copyfile('saojose/saojose_l8_chip.tif', test_file)
+
+        control = {
+            'output_file': test_file,
+            'compositors': [
+                {
+                    'class': 'scene_measure',
+                    'scene_measure': 'acquisition_date',
+                    },
+                ],
+            'inputs': [
+                {
+                    'filename': 'saojose/saojose_LC82150642013216LGN00_RGB.tif',
+                    'acquisition_date': 1377000216.0,
+                    },
+                {
+                    'filename': 'saojose/saojose_LC82150642014011LGN00_RGB.tif',
+                    'acquisition_date': 1377001011.0,
+                    },
+                {
+                    'filename': 'saojose/saojose_LC82150642013104LGN01_RGB.tif',
+                    'acquisition_date': 1377000104.0,
+                    },
+                ],
+            }
+
+        open(json_file,'w').write(json.dumps(control))
+        args = [ '-q', '-j', json_file ]
+        self.run_compositor(args)
+
+        self.check('newest_golden.tif', test_file)
+        os.unlink(test_file)
+        os.unlink(json_file)
         
     def test_with_l8_cloud_mask(self):
         test_file = 'l8_cloud_mask_test.tif'

@@ -1,0 +1,47 @@
+{
+    "$schema": "http://json-schema.org/draft-03/schema#",
+    "title": "PLCompositor Schema",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+	"output_file": {
+	    "type": "string",
+	    "required": true
+	},
+	"source_trace": {
+	    "type": "string"
+	},
+	"quality_output": {
+	    "type": "string"
+	},
+	"compositors": {
+	    "type": "array",
+	    "required": true,
+	    "items": {
+		"type": "object",
+		"properties": {
+		    "class": {
+			"type": "string",
+			"required": true,
+			"enum": ["scene_measure", "darkest", "greenest",
+				 "landsat8", "percentile", "qualityfromfile"]
+		    }
+		}
+	    }
+	},
+	"inputs": {
+	    "type": "array",
+	    "required": true,
+	    "items": {
+		"type": "object",
+		"properties": {
+		    "filename": {
+			"type": "string",
+			"required": true
+		    },
+		},
+	    }
+	}
+    },
+    "required": true
+}

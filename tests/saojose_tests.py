@@ -178,7 +178,7 @@ class Tests(unittest.TestCase):
         os.unlink(test_file)
         
     def test_newest_json(self):
-        json_file = 'quality_file.json'
+        json_file = 'newest.json'
         test_file = 'newest_test.tif'
         shutil.copyfile('saojose/saojose_l8_chip.tif', test_file)
 

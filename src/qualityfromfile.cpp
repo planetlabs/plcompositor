@@ -45,7 +45,6 @@ public:
         
         if( node == NULL )
         {
-            unsigned int i;
             obj->file_suffix = context->getStratParam("quality_file", 
                                                       "<missing>");
             

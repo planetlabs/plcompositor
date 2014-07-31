@@ -36,6 +36,54 @@ void Usage()
 }
 
 /************************************************************************/
+/*                            ValidateJSON()                            */
+/************************************************************************/
+
+static void schema_error(void *client, const char *format, ...) {
+	va_list ap;
+	va_start(ap, format);
+	vfprintf(stderr, format, ap);
+	va_end(ap);
+	fprintf(stderr, "\n");
+}
+
+static void ValidateJSON(WJElement json_doc, const char *schema_file, 
+                         int quiet)
+
+{
+    FILE *fp = fopen(schema_file, "r");
+    if( fp == NULL )
+    {
+        CPLError(CE_Warning, CPLE_AppDefined,
+                 "Failed to open %s, skipping schema validation.", 
+                 schema_file);
+        return;
+    }
+
+    WJReader read_schema;
+    WJElement schema_json;
+
+    if(!(read_schema = WJROpenFILEDocument(fp, NULL, 0)) ||
+       !(schema_json = WJEOpenDocument(read_schema, NULL, NULL, NULL))) {
+        fprintf(stderr, "json could not be read.\n");
+        exit(3);
+    }
+
+    if(WJESchemaValidate(schema_json, json_doc, schema_error, 
+                         NULL, NULL, NULL)) {
+        if( !quiet )
+            printf("Schema validation successful.\n");
+    } else {
+        CPLError(CE_Fatal, CPLE_AppDefined,
+                 "JSON Schema Validation Failed.");
+    }
+    
+    WJECloseDocument(schema_json);
+    WJRCloseDocument(read_schema);
+    fclose(fp);
+}
+
+/************************************************************************/
 /*                              LoadJSON()                              */
 /************************************************************************/
 
@@ -61,6 +109,10 @@ static void LoadJSON(PLCContext &plContext, const char *json_filename)
         fprintf(stderr, "json could not be read.\n");
         exit(3);
     }
+
+    const char *schema = CPLGetConfigOption("COMPOSITOR_SCHEMA", NULL);
+    if( schema != NULL )
+        ValidateJSON(json, schema, plContext.quiet);
 
 /* -------------------------------------------------------------------- */
 /*      Configure context from json.                                    */

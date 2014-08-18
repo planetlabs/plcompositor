@@ -35,7 +35,6 @@ public:
     /********************************************************************/
     QualityMethodBase *create(PLCContext* context, WJElement node) {
         PercentileQuality *obj = new PercentileQuality();
-        obj->targetQuality.resize(context->width);
 
         if( node == NULL )
         {
@@ -103,11 +102,13 @@ public:
         unsigned int i;
         std::vector<float*> inputQualities;
 
+        targetQuality.resize(context->width);
+
         for(i = 0; i < context->inputFiles.size(); i++ )
             inputQualities.push_back(lines[i]->getQuality());
 
         std::vector<float> pixelQualities;
-        pixelQualities.resize(context->inputFiles.size());
+        pixelQualities.resize(context->width);
 
         for(int iPixel=0; iPixel < context->width; iPixel++)
         {

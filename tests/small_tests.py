@@ -278,7 +278,7 @@ class Tests(unittest.TestCase):
 
         self.compare_file(test_file, [[102, 101], [0, 102]])
         self.compare_file(quality_out, 
-                          [[[1.340, 1.340], [-1.0, 0.167]], 
+                          [[[1.340, 1.340], [0.0, 0.167]], 
                            [[0.335, 1.340], [-1.0, 0.007]], 
                            [[1.340, 1.206], [-1.0, 0.167]]],
                           tolerance=0.001)
@@ -326,7 +326,7 @@ class Tests(unittest.TestCase):
 
         self.compare_file(test_file, [[102, 101], [0, 102]])
         self.compare_file(quality_out, 
-                          [[[1.340, 1.340], [-1.0, 0.167]], 
+                          [[[1.340, 1.340], [0.0, 0.167]], 
                            [[0.335, 1.340], [-1.0, 0.007]], 
                            [[1.340, 1.206], [-1.0, 0.167]]],
                           tolerance=0.001)

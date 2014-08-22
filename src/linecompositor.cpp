@@ -105,7 +105,7 @@ void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
 
     for(iPixel=0; iPixel < width; iPixel++)
     {
-        bestQuality[iPixel] = -1.0;
+        bestQuality[iPixel] = 0.0;
         bestInput[iPixel] = 0;
 
         for(i = 0; i < plContext->inputFiles.size(); i++ )
@@ -119,7 +119,7 @@ void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
             }
         }
 
-        if( bestQuality[iPixel] < 0.0 )
+        if( bestInput[iPixel] != 0 )
         {
             if( plContext->isDebugPixel(iPixel, line) )
                 printf("No active candidates @ %d,%d\n", 

@@ -62,6 +62,7 @@ public:
         {
             obj->percentileRatio = WJEDouble(node, "quality_percentile", 
                                              WJE_GET, 50.0) / 100.0;
+            CPLDebug("PLC", "Percentile Quality: %.2f.", obj->percentileRatio);
         }
         return obj;
     }

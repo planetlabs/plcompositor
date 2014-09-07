@@ -4,6 +4,7 @@ import os
 import gdal
 import string
 import gvplot
+import toolexample
 
 FALSE = gtk.FALSE
 TRUE = gtk.TRUE

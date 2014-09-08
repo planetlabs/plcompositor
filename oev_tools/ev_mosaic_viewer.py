@@ -23,9 +23,14 @@ LYR_GENERIC  = 0
 LYR_LANDSAT8 = 1
 LYR_SOURCE_TRACE = 2
 LYR_QUALITY = 3
+LYR_NOT_RASTER = 4
 
 def layer_class(layer):
-    dataset = layer.get_parent().get_dataset()
+    try:
+        dataset = layer.get_parent().get_dataset()
+    except:
+        return LYR_NOT_RASTER
+    
     if (dataset.GetRasterBand(1).DataType == gdal.GDT_UInt16 or dataset.GetRasterBand(1).DataType == gdal.GDT_Int16) and dataset.RasterCount == 4:
         return LYR_LANDSAT8
 
@@ -58,28 +63,32 @@ class MosaicViewerTool(gviewapp.Tool_GViewApp):
         except:
             print 'down <undefined>/%d' % event.keyval
         if event.keyval == ord('g'):
-            print 'enable graphing'
-            self.graphing = True
+            if not self.graphing:
+                print 'enable graphing'
+                self.graphing = True
+            else:
+                print 'disable graphing'
+                self.graphing = False
 
     def key_up_cb(self, viewarea, event):
         try:
             print 'up %s/%d' % (chr(event.keyval), event.keyval)
         except:
             print 'up <undefined>/%d' % event.keyval
-        if event.keyval == ord('g'):
-            print 'disable graphing'
-            self.graphing = False
 
     def mouse_cb(self, viewarea, event):
-        print 'mouse event:', event.type
+        #print 'mouse event:', event.type
 
         if event.type == 4:
-            print event.type, event.button, event.state
+            print event.type, event.button, event.state, event.x, event.y
+            if self.graphing and event.button == 1:
+                ev_profile.graph(viewarea.map_pointer((event.x, event.y)))
         elif event.type == 3:
             #print event.x, event.y
             #print viewarea.map_pointer((event.x, event.y))
-            if self.graphing:
-                ev_profile.graph(viewarea.map_pointer((event.x, event.y)))
+            #if self.graphing:
+            #    ev_profile.graph(viewarea.map_pointer((event.x, event.y)))
+            pass
 
     def track_view_activity(self):
         view = gview.app.view_manager.get_active_view_window()
@@ -241,10 +250,24 @@ class MosaicDialog(GtkWindow):
         execute_btn.connect("clicked", self.rescale_landsat_cb)
 	box2.pack_start(execute_btn)
         
+        execute_btn = GtkButton("Reload")
+        execute_btn.connect("clicked", self.reload_cb)
+	box2.pack_start(execute_btn)
+        
         close_btn = GtkButton("Close")
         close_btn.connect("clicked", self.close)
         box2.pack_start(close_btn)
 
+    def reload_cb(self, *args):
+        import quality_hist_tool
+        import ev_mosaic_viewer
+
+        print 'Attemping reload:'
+        reload(ev_profile)
+        reload(quality_hist_tool)
+        reload(ev_mosaic_viewer)
+        print 'Reload apparently successful.'
+        
     def rescale_landsat_cb( self, *args ):
         view = gview.app.view_manager.get_active_view_window()
         layers = view.viewarea.list_layers()

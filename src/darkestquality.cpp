@@ -23,6 +23,8 @@
 class DarkQuality : public QualityMethodBase 
 {
     PLCInput *input;
+    double    scale_min;
+    double    scale_max;
 
 public:
     DarkQuality() : QualityMethodBase("darkest") {}
@@ -31,6 +33,18 @@ public:
     /********************************************************************/
     QualityMethodBase *create(PLCContext* context, WJElement node) {
         DarkQuality *obj = new DarkQuality();
+
+        obj->scale_min = 0.0;
+        obj->scale_max = 255.0;
+
+        if( node != NULL )
+        {
+            obj->scale_min = WJEDouble(node, "scale_min", WJE_GET, 
+                                       obj->scale_min);
+            obj->scale_max = WJEDouble(node, "scale_max", WJE_GET, 
+                                       obj->scale_max);
+        }
+
         return obj;
     }
 
@@ -39,13 +53,15 @@ public:
 
         float *quality = lineObj->getNewQuality();
         int width = lineObj->getWidth();
+        double scale = 1.0 / (lineObj->getBandCount() * (scale_max-scale_min));
 
+        memset(quality, 0, sizeof(float) * width);
         for(int iBand=0; iBand < lineObj->getBandCount(); iBand++)
         {
             short *pixels = lineObj->getBand(iBand);
 
             for(int i=0; i < width; i++ )
-                quality[i] += (32768 - pixels[i]) / 96000.0;
+                quality[i] += (scale_max - pixels[i]) * scale;
         }
     
         GByte *alpha = lineObj->getAlpha();

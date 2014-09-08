@@ -130,21 +130,31 @@ class Tests(unittest.TestCase):
         os.unlink(test_file)
         
     def test_darkest_with_source(self):
+        json_file = 'darkest.json'
         test_file = 'darkest_test.tif'
         test_source_file = 'darkest_source_test.tif'
         test_quality_file = 'darkest_quality_test.tif'
         shutil.copyfile('saojose/saojose_l8_chip.tif', test_file)
 
-        args = [
-            '-q',
-            '-s', 'quality', 'darkest',
-            '-o', test_file, 
-            '-st', test_source_file,
-            '-qo', test_quality_file,
-            ]
+        control = {
+            'output_file': test_file,
+            'source_trace': test_source_file,
+            'quality_output': test_quality_file,
+            'compositors': [
+                {
+                    'class': 'darkest',
+                    'scale_min': 0,
+                    'scale_max': 32000.0,
+                    },
+                ],
+            'inputs': [],
+            }
 
         for filename in SAOJOSE_INPUTS:
-            args += ['-i', filename]
+            control['inputs'].append({'filename': filename})
+
+        open(json_file,'w').write(json.dumps(control))
+        args = [ '-q', '-j', json_file ]
 
         self.run_compositor(args)
 
@@ -154,6 +164,7 @@ class Tests(unittest.TestCase):
         os.unlink(test_file)
         os.unlink(test_source_file)
         os.unlink(test_quality_file)
+        os.unlink(json_file)
         
     def test_newest(self):
         test_file = 'newest_test.tif'
@@ -215,68 +226,122 @@ class Tests(unittest.TestCase):
         os.unlink(json_file)
         
     def test_with_l8_cloud_mask(self):
+        json_file = 'l8_cloud_mask.json'
         test_file = 'l8_cloud_mask_test.tif'
         shutil.copyfile('saojose/saojose_l8_chip.tif', test_file)
 
-        args = [
-            '-q',
-            '-s', 'quality', 'darkest',
-            '-s', 'cloud_quality', 'landsat8',
-            '-o', test_file, 
-            ]
+        control = {
+            'output_file': test_file,
+            'compositors': [
+                {
+                    'class': 'darkest',
+                    'scale_min': 0,
+                    'scale_max': 32000.0,
+                    },
+                {
+                    'class': 'landsat8',
+                    },
+                ],
+            'inputs': [],
+            }
 
         for filename in SAOJOSE_INPUTS:
-            args += ['-i', filename, 
-                     '-c', filename.replace('_LC8', '_cld_LC8')]
+            control['inputs'].append({
+                'filename': filename,
+                'cloud_file': filename.replace('_LC8', '_cld_LC8'),
+                })
+
+        open(json_file,'w').write(json.dumps(control))
+
+        args = ['-q', '-j', json_file]
         
         self.run_compositor(args)
 
         self.check('l8_cloud_mask_golden.tif', test_file)
         os.unlink(test_file)
+        os.unlink(json_file)
         
     def test_median_with_cloud(self):
+        json_file = 'median_with_cloud.json'
         test_file = 'median_with_cloud_test.tif'
         shutil.copyfile('saojose/saojose_l8_chip.tif', test_file)
 
-        args = [
-            '-q',
-            '-s', 'quality', 'darkest',
-            '-s', 'cloud_quality', 'landsat8',
-            '-s', 'compositor', 'median',
-            '-o', test_file, 
-            ]
+        control = {
+            'output_file': test_file,
+            'compositors': [
+                {
+                    'class': 'landsat8',
+                    },
+                {
+                    'class': 'darkest',
+                    'scale_min': 0,
+                    'scale_max': 96000.0,
+                    },
+                {
+                    'class': 'percentile',
+                    'quality_percentile': 50.0,
+                    },
+                ],
+            'inputs': [],
+            }
 
         for filename in SAOJOSE_INPUTS:
-            args += ['-i', filename, 
-                     '-c', filename.replace('_LC8', '_cld_LC8')]
+            control['inputs'].append({
+                'filename': filename,
+                'cloud_file': filename.replace('_LC8', '_cld_LC8'),
+                })
+
+        open(json_file,'w').write(json.dumps(control))
+
+        args = ['-q', '-j', json_file]
         
         self.run_compositor(args)
 
         self.check('median_with_cloud_golden.tif', test_file)
         os.unlink(test_file)
+        os.unlink(json_file)
         
     def test_median_like_darkest(self):
         # A median filter with median_threshold=1.0 should be the same
-        # as a simple quality darkest composite. 
+        # as a simple quality darkest composite.
+        json_file = 'median_like_darkest.json'
         test_file = 'median_like_darkest_test.tif'
         shutil.copyfile('saojose/saojose_l8_chip.tif', test_file)
 
-        args = [
-            '-q',
-            '-s', 'quality', 'darkest',
-            '-s', 'compositor', 'median',
-            '-s', 'quality_percentile', '100.0',
-            '-o', test_file, 
-            ]
+        control = {
+            'output_file': test_file,
+            'compositors': [
+                {
+                    'class': 'landsat8',
+                    },
+                {
+                    'class': 'darkest',
+                    'scale_min': 0,
+                    'scale_max': 96000.0,
+                    },
+                {
+                    'class': 'percentile',
+                    'quality_percentile': 100.0,
+                    },
+                ],
+            'inputs': [],
+            }
 
         for filename in SAOJOSE_INPUTS:
-            args += ['-i', filename]
+            control['inputs'].append({
+                'filename': filename,
+                'cloud_file': filename.replace('_LC8', '_cld_LC8'),
+                })
+
+        open(json_file,'w').write(json.dumps(control))
+
+        args = ['-q', '-j', json_file]
         
         self.run_compositor(args)
 
         # Why can't we use darkest_golden.tif?  There are 9 pixels different
         # but I don't yet know why.
-        self.check('media_like_darkest_golden.tif', test_file)
+        self.check('median_like_darkest_golden.tif', test_file)
         os.unlink(test_file)
 
 if __name__ == '__main__':

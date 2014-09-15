@@ -34,8 +34,10 @@ public:
     QualityMethodBase *create(PLCContext* context, WJElement node) {
         DarkQuality *obj = new DarkQuality();
 
+        // We default to 256 as scale_max to ensure that saturated pixels
+        // do not result in quality zero which is transparent.
         obj->scale_min = 0.0;
-        obj->scale_max = 255.0;
+        obj->scale_max = 256.0;
 
         if( node != NULL )
         {

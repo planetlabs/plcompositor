@@ -4,6 +4,7 @@ import os
 import shutil
 import urllib
 import json
+import subprocess
 from zipfile import ZipFile
 
 from osgeo import gdal
@@ -85,13 +86,30 @@ class Tests(unittest.TestCase):
         raise Exception(msg)
 
     def run_compositor(self, args):
-        if os.path.exists('../compositor'):
-            binary = '../compositor'
-        else:
-            binary = 'compositor'
-        cmd = ' '.join([binary] + args)
+        all_args = [
+            '../compositor',
+            '--config', 'COMPOSITOR_SCHEMA', '../compositor_schema.json',
+            ] + args
+
+        cmd = ' '.join(all_args)
         print cmd
-        return os.system(cmd)
+        
+        filename_out = 'test_%d.stdout' % os.getpid()
+        fd_out = open(filename_out,'w')
+        filename_err = 'test_%d.stderr' % os.getpid()
+        fd_err = open(filename_err,'w')
+
+        rc = subprocess.call(all_args, stdout=fd_out, stderr=fd_err)
+
+        fd_out = None
+        fd_err = None
+        
+        out = open(filename_out).read()
+        err = open(filename_err).read()
+        os.unlink(filename_out)
+        os.unlink(filename_err)
+        
+        return (rc, out, err)
 
     def test_greenest_simple(self):
         test_file = 'greenest_simple_test.tif'
@@ -343,6 +361,7 @@ class Tests(unittest.TestCase):
         # but I don't yet know why.
         self.check('median_like_darkest_golden.tif', test_file)
         os.unlink(test_file)
+        os.unlink(json_file)
 
 if __name__ == '__main__':
     unittest.main()

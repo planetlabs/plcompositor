@@ -5,6 +5,7 @@ import shutil
 import numpy
 import traceback
 import json
+import subprocess
 
 from osgeo import gdal, gdal_array
 
@@ -67,13 +68,31 @@ class Tests(unittest.TestCase):
             raise Exception('%s differs from golden data' % test_file)
 
     def run_compositor(self, args):
-        if os.path.exists('../compositor'):
-            binary = '../compositor'
-        else:
-            binary = 'compositor'
-        cmd = ' '.join([binary] + args)
+        all_args = [
+            '../compositor',
+            '--config', 'COMPOSITOR_SCHEMA', '../compositor_schema.json',
+            ] + args
+
+        cmd = ' '.join(all_args)
         print cmd
-        return os.system(cmd)
+        
+        filename_out = 'test_%d.stdout' % os.getpid()
+        fd_out = open(filename_out,'w')
+        filename_err = 'test_%d.stderr' % os.getpid()
+        fd_err = open(filename_err,'w')
+
+        rc = subprocess.call(all_args, stdout=fd_out, stderr=fd_err)
+
+        fd_out = None
+        fd_err = None
+        
+        out = open(filename_out).read()
+        err = open(filename_err).read()
+        os.unlink(filename_out)
+        os.unlink(filename_err)
+        
+        return (rc, out, err)
+
 
     def test_small_darkest_gray(self):
         test_file = self.make_file(TEMPLATE_GRAY)
@@ -348,6 +367,40 @@ class Tests(unittest.TestCase):
                           tolerance=0.001)
 
         os.unlink(quality_out)
+        os.unlink(json_file)
+        self.clean_files()
+        
+    def test_schema_validation(self):
+        test_file = self.make_file(TEMPLATE_GRAY)
+        json_file = 'schema_test.json'
+        control = {
+            'output_file': test_file,
+            'compositors': [
+                {
+                    'classx': 'darkest',
+                    'scale_min': 0.0,
+                    'scale_max': 255.0,
+                    },
+                ],
+            'inputs': [
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY, 
+                                               [[101, 101], [101, 101]]),
+                    },
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY, 
+                                               [[102, 102], [102, 102]]),
+                    },
+                ],
+            }
+
+        open(json_file,'w').write(json.dumps(control))
+        (rc, out, err) = self.run_compositor(['-q', '-j', json_file])
+        
+        self.assertNotEqual(0, rc)
+        self.assertEqual('', out)
+        self.assertIn("required item 'class' not found", err)
+
         os.unlink(json_file)
         self.clean_files()
         

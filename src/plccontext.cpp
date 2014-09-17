@@ -209,14 +209,20 @@ void PLCContext::initializeQualityMethods(WJElement compositors)
     WJElement method_def = NULL;
     while( (method_def = _WJEObject(compositors, "[]", WJE_GET, &method_def)) )
     {
-        CPLString methodClass = WJEString(method_def, "class", WJE_GET, NULL);
+        CPLString methodClass = WJEString(method_def, "class", WJE_GET, "");
 
-        CPLAssert(strlen(methodClass) > 0);
+        if( EQUAL(methodClass,"") )
+            CPLError(CE_Fatal, CPLE_AppDefined,
+                     "Did not find 'class' field for compositor.");
 
         QualityMethodBase *method = 
             QualityMethodBase::CreateQualityFunction(
                 this, method_def, methodClass);
-        CPLAssert( method != NULL );
+        if( method == NULL )
+            CPLError(CE_Fatal, CPLE_AppDefined,
+                     "Compositor class '%s' not recognised.",
+                     methodClass.c_str());
+
         qualityMethods.push_back(method);
     }
 }

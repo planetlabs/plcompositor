@@ -37,7 +37,7 @@ def layer_class(layer):
     if dataset.GetDescription().find('st-') != -1:
         return LYR_SOURCE_TRACE
 
-    if dataset.RasterCount > 4 and dataset.GetRasterBand(1).DataType == gdal.GDT_Float32:
+    if dataset.RasterCount > 1 and dataset.GetRasterBand(1).DataType == gdal.GDT_Float32:
         return LYR_QUALITY
 
     return LYR_GENERIC
@@ -153,7 +153,7 @@ class MosaicDialog(GtkWindow):
         dataset = self.quality_layer.get_parent().get_dataset()
 
         self.quality_band_names = []
-        for band_num in range(1,dataset.RasterCount):
+        for band_num in range(1,dataset.RasterCount+1):
             self.quality_band_names.append(
                 dataset.GetRasterBand(band_num).GetMetadata()['DESCRIPTION'])
             

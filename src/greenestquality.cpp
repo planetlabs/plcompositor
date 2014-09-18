@@ -45,9 +45,9 @@ public:
             CPLError( CE_Fatal, CPLE_AppDefined,
                       "Greenest Pixel requested without 3 bands." );
 
-        short *red = lineObj->getBand(0);
-        short *green = lineObj->getBand(1);
-        short *blue = lineObj->getBand(2);
+        float *red = lineObj->getBand(0);
+        float *green = lineObj->getBand(1);
+        float *blue = lineObj->getBand(2);
         GByte *alpha = lineObj->getAlpha();
 
         for(int i=0; i < width; i++ )

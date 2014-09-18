@@ -53,12 +53,12 @@ PLCLine::~PLCLine()
 /*                              getBand()                               */
 /************************************************************************/
 
-short *PLCLine::getBand(int band)
+float *PLCLine::getBand(int band)
 {
     if( band == bandCount )
     {
         bandCount++;
-        bandData.push_back((short *) CPLCalloc(sizeof(short),width));
+        bandData.push_back((float *) CPLCalloc(sizeof(float),width));
         return bandData[band];
     }
 

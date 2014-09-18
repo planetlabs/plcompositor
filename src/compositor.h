@@ -29,7 +29,7 @@ class PLCLine {
     int     width;
     
     int     bandCount;
-    std::vector<short*> bandData;
+    std::vector<float*> bandData;
     unsigned short  *cloud;
     GByte  *alpha;
     float  *quality;
@@ -42,7 +42,7 @@ class PLCLine {
 
     int     getWidth() { return width; }
     int     getBandCount() { return bandCount; }
-    short  *getBand(int);
+    float  *getBand(int);
     GByte  *getAlpha();
     unsigned short  *getCloud();
     unsigned short  *getSource();

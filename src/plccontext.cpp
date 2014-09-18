@@ -62,7 +62,7 @@ PLCLine *PLCContext::getOutputLine(int line)
                                   0, 0);
         else
             eErr = band->RasterIO(GF_Read, 0, line, width, 1, 
-                                  lineObj->getBand(i), width, 1, GDT_Int16, 
+                                  lineObj->getBand(i), width, 1, GDT_Float32, 
                                   0, 0);
 
         if( eErr != CE_None )
@@ -94,7 +94,7 @@ void PLCContext::writeOutputLine(int line, PLCLine *lineObj)
                                   0, 0);
         else
             eErr = band->RasterIO(GF_Write, 0, line, width, 1, 
-                                  lineObj->getBand(i), width, 1, GDT_Int16, 
+                                  lineObj->getBand(i), width, 1, GDT_Float32, 
                                   0, 0);
 
         if( eErr != CE_None )

@@ -146,8 +146,8 @@ void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
         {
             for(int iBand=0; iBand < lineObj->getBandCount(); iBand++)
             {
-                short *dst_pixels = lineObj->getBand(iBand);
-                short *src_pixels = 
+                float *dst_pixels = lineObj->getBand(iBand);
+                float *src_pixels = 
                     inputLines[bestInput[iPixel]-1]->getBand(iBand);
                 dst_pixels[iPixel] = src_pixels[iPixel];
             }

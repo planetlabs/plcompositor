@@ -60,7 +60,7 @@ public:
         memset(quality, 0, sizeof(float) * width);
         for(int iBand=0; iBand < lineObj->getBandCount(); iBand++)
         {
-            short *pixels = lineObj->getBand(iBand);
+            float *pixels = lineObj->getBand(iBand);
 
             for(int i=0; i < width; i++ )
                 quality[i] += (scale_max - pixels[i]) * scale;

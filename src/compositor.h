@@ -124,6 +124,8 @@ class PLCContext {
     int           verbose;
     int           currentLine;
 
+    double        averageBestRatio;
+
     std::vector<int> debugPixels;
     int           isDebugPixel(int pixel, int line);
     int           isDebugLine(int line);

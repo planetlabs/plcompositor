@@ -14,7 +14,19 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include "compositor.h"
+
+// used to sort for median.
+class InputQualityPair {
+public:
+    int inputFile;
+    float quality;
+    
+    bool operator< (const InputQualityPair &rhs) const {
+        return this->quality > rhs.quality;
+    }
+};
 
 /************************************************************************/
 /*                           LineCompositor()                           */
@@ -100,25 +112,41 @@ void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
 /* -------------------------------------------------------------------- */
 /*      Establish which is the best source for each pixel.              */
 /* -------------------------------------------------------------------- */
+    std::vector<InputQualityPair> candidates;
+    candidates.resize(plContext->inputFiles.size());
     unsigned short *bestInput = lineObj->getSource();
     float *bestQuality = lineObj->getQuality();
 
     for(iPixel=0; iPixel < width; iPixel++)
     {
-        bestQuality[iPixel] = 0.0;
-        bestInput[iPixel] = 0;
+        int activeCandidates = 0;
 
         for(i = 0; i < plContext->inputFiles.size(); i++ )
         {
-            float *quality = inputQualities[i];
-
-            if(quality[iPixel] > bestQuality[iPixel])
+            if( inputQualities[i][iPixel] > 0.0 )
             {
-                bestQuality[iPixel] = quality[iPixel];
-                bestInput[iPixel] = i+1;
+                candidates[activeCandidates].inputFile = i;
+                candidates[activeCandidates].quality = 
+                    inputQualities[i][iPixel];
+                activeCandidates++;
             }
         }
 
+        if( activeCandidates > 1 )
+            std::sort(candidates.begin(), 
+                      candidates.begin() + activeCandidates);
+
+        if( activeCandidates == 0 )
+        {
+            bestQuality[iPixel] = 0.0;
+            bestInput[iPixel] = 0;
+        }
+        else
+        {
+            bestQuality[iPixel] = candidates[0].quality;
+            bestInput[iPixel] = candidates[0].inputFile+1;
+        }
+            
         if( bestInput[iPixel] != 0 )
         {
             if( plContext->isDebugPixel(iPixel, line) )
@@ -131,31 +159,39 @@ void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
                 printf("Best quality for %d,%d is %.5f from input %d.\n",
                        iPixel, line, bestQuality[iPixel], bestInput[iPixel]);
         }
-    }
-
-    plContext->qualityHistogram.accumulate(bestQuality, width);
 
 /* -------------------------------------------------------------------- */
-/*      Build output with best pixels source for each pixel.            */
+/*      Build output with best pixel source(s) for each pixel.          */
 /* -------------------------------------------------------------------- */
-    for(iPixel = 0; iPixel < width; iPixel++) 
-    {
         GByte *dst_alpha = lineObj->getAlpha();
+        int averageCount = (int) floor(activeCandidates * plContext->averageBestRatio);
 
-        if(bestInput[iPixel] != 0)
+        if( averageCount == 0 && activeCandidates > 0 )
+            averageCount = 1;
+
+        if( averageCount == 0 )
+            dst_alpha[iPixel] = 0;
+        else
         {
             for(int iBand=0; iBand < lineObj->getBandCount(); iBand++)
             {
                 float *dst_pixels = lineObj->getBand(iBand);
-                float *src_pixels = 
-                    inputLines[bestInput[iPixel]-1]->getBand(iBand);
-                dst_pixels[iPixel] = src_pixels[iPixel];
+
+                dst_pixels[iPixel] = 0.0;
+
+                for(int i=0; i < averageCount; i++)
+                {
+                    dst_pixels[iPixel] += 
+                        inputLines[candidates[i].inputFile]->getBand(iBand)[iPixel];
+                }
+                if( averageCount > 0 )
+                    dst_pixels[iPixel] /= averageCount;
             }
             dst_alpha[iPixel] = 255;
         }
-        else
-            dst_alpha[iPixel] = 0;
     }
+
+    plContext->qualityHistogram.accumulate(bestQuality, width);
 
 /* -------------------------------------------------------------------- */
 /*      Consider writing input qualities.                               */

@@ -28,6 +28,7 @@ PLCContext::PLCContext()
     qualityDS = NULL;
     quiet = FALSE;
     verbose = 0;
+    averageBestRatio = 0.0;
 }
 
 /************************************************************************/
@@ -243,6 +244,8 @@ void PLCContext::initializeFromJson(WJElement doc)
         WJEString(doc, "source_trace", WJE_GET, sourceTraceFilename);
     qualityFilename = 
         WJEString(doc, "quality_output", WJE_GET, qualityFilename);
+    averageBestRatio = 
+        WJEDouble(doc, "average_best_ratio", WJE_GET, 0.0);
 
     initializeQualityMethods( WJEArray(doc, "compositors", WJE_GET) );
     

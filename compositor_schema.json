@@ -14,6 +14,9 @@
 	"quality_output": {
 	    "type": "string"
 	},
+	"average_best_ratio": {
+	    "type": "number"
+	},
 	"compositors": {
 	    "type": "array",
 	    "required": true,

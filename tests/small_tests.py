@@ -404,5 +404,42 @@ class Tests(unittest.TestCase):
         os.unlink(json_file)
         self.clean_files()
         
+    def test_small_darkest_gray_averaging_json(self):
+        json_file = 'small_darkest_gray_averaging.json'
+        test_file = self.make_file(TEMPLATE_GRAY)
+        control = {
+            'output_file': test_file,
+            'average_best_ratio': 0.75,
+            'compositors': [
+                {
+                    'class': 'darkest',
+                    'scale_min': 0.0,
+                    'scale_max': 255.0,
+                    },
+                ],
+            'inputs': [
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY, 
+                                               [[10, 255], [6, 5]]),
+                    },
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY, 
+                                               [[20, 255], [2, 3]]),
+                    },
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY, 
+                                               [[30, 12], [2, 3]]),
+                    },
+                ],
+            }
+
+        open(json_file,'w').write(json.dumps(control))
+        self.run_compositor([ '-q', '-j', json_file])
+
+        self.compare_file(test_file, [[15, 12], [2, 3]])
+
+        os.unlink(json_file)
+        self.clean_files()
+        
 if __name__ == '__main__':
     unittest.main()

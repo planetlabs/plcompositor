@@ -29,6 +29,7 @@ void Usage()
 
 {
     printf( "Usage: compositor --help --help-general\n" );
+    printf( "         [-j control.json]\n" );
     printf( "         -o output_file [-st source_trace_file] [-qo quality]\n" );
     printf( "         [-s name value]* [-q] [-v] [-dp pixel line]\n" );
     printf( "         [-i input_file [-c cloudmask] [-qm name value]*]*\n" );

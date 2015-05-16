@@ -279,6 +279,44 @@ class Tests(unittest.TestCase):
         os.unlink(test_file)
         os.unlink(json_file)
         
+    def test_with_custom_l8_cloud(self):
+        json_file = 'custom_l8_cloud.json'
+        test_file = 'custom_l8_cloud_test.tif'
+        shutil.copyfile('saojose/saojose_l8_chip.tif', test_file)
+
+        control = {
+            'output_file': test_file,
+            'compositors': [
+                {
+                    'class': 'landsat8',
+                    'fully_confident_cloud': 1.0,
+                    'mostly_confident_cloud': 0.66,
+                    'partially_confident_cloud': 0.33,
+                    'not_cloud': 0.0,
+                    },
+                ],
+            'inputs': [
+                {
+                  'filename': 'saojose/saojose_LC82150642013280LGN00_RGB.tif',
+                  'cloud_file': 'saojose/saojose_cld_LC82150642013280LGN00_RGB.tif',
+                  },
+                {
+                  'filename': 'saojose/saojose_LC82150642014011LGN00_RGB.tif',
+                  'cloud_file': 'saojose/saojose_cld_LC82150642014011LGN00_RGB.tif',
+                  },
+                ],
+            }
+
+        open(json_file,'w').write(json.dumps(control))
+
+        args = ['-q', '-j', json_file]
+        
+        self.run_compositor(args)
+
+        self.check('custom_l8_cloud_golden.tif', test_file)
+        os.unlink(test_file)
+        os.unlink(json_file)
+        
     def test_median_with_cloud(self):
         json_file = 'median_with_cloud.json'
         test_file = 'median_with_cloud_test.tif'

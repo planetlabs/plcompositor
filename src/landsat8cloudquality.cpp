@@ -61,6 +61,11 @@ class Landsat8CloudQuality : public QualityMethodBase
     PLCContext *context;
     PLCHistogram cloudHistogram;
 
+    float fully_confident_cloud;
+    float mostly_confident_cloud;
+    float partially_confident_cloud;
+    float not_cloud;
+
 public:
     Landsat8CloudQuality() : QualityMethodBase("landsat8") {}
     ~Landsat8CloudQuality() {}
@@ -71,6 +76,28 @@ public:
         Landsat8CloudQuality *obj = new Landsat8CloudQuality();
         obj->context = context;
         obj->cloudHistogram.counts.resize(6);
+
+        obj->fully_confident_cloud = -1.0;
+        obj->mostly_confident_cloud = 0.33;
+        obj->partially_confident_cloud = 0.66;
+        obj->not_cloud = 1.0;
+
+        if( node != NULL )
+        {
+            obj->fully_confident_cloud = 
+                WJEDouble(node, "fully_confident_cloud", WJE_GET, 
+                          obj->fully_confident_cloud);
+            obj->mostly_confident_cloud = 
+                WJEDouble(node, "mostly_confident_cloud", WJE_GET, 
+                          obj->mostly_confident_cloud);
+            obj->partially_confident_cloud = 
+                WJEDouble(node, "partially_confident_cloud", WJE_GET, 
+                          obj->partially_confident_cloud);
+            obj->not_cloud = 
+                WJEDouble(node, "not_cloud", WJE_GET, 
+                          obj->not_cloud);
+        }
+        
         return obj;
     }
 
@@ -81,32 +108,26 @@ public:
         unsigned short *cloud = lineObj->getCloud();
         int width = lineObj->getWidth();
 
-        float ALL_CLOUD = -1.0; // TODO(warmerdam): add flag to set 
-        // zero for opaque last resort cloud pixels.
-        static const float MOSTLY_CLOUD = 0.33;
-        static const float PARTIAL_CLOUD = 0.66;
-        static const float NO_CLOUD = 1.0;
-    
         for(int i=0; i < width; i++ )
         {
             switch( cloud[i] & 0xc000 ) {
               case 0xc000:
-                quality[i] = ALL_CLOUD;
+                quality[i] = fully_confident_cloud;
                 break;
 
               case 0x8000:
-                quality[i] = MOSTLY_CLOUD;
+                quality[i] = mostly_confident_cloud;
                 break;
             
               case 0x4000:
-                quality[i] = PARTIAL_CLOUD;
+                quality[i] = partially_confident_cloud;
                 break;
 
               default:
                 if( cloud[i] & 0x7 ) // dead pixel markers.
                     quality[i] = -1.0;
                 else
-                    quality[i] = NO_CLOUD;
+                    quality[i] = not_cloud;
                 break;
             }
         }

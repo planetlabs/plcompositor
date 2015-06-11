@@ -66,6 +66,10 @@ class Landsat8CloudQuality : public QualityMethodBase
     float partially_confident_cloud;
     float not_cloud;
 
+    float fully_confident_cirrus;
+    float mostly_confident_cirrus;
+    float partially_confident_cirrus;
+
 public:
     Landsat8CloudQuality() : QualityMethodBase("landsat8") {}
     ~Landsat8CloudQuality() {}
@@ -82,6 +86,10 @@ public:
         obj->partially_confident_cloud = 0.66;
         obj->not_cloud = 1.0;
 
+        obj->fully_confident_cirrus = 0.2;
+        obj->mostly_confident_cirrus = 0.5;
+        obj->partially_confident_cirrus = 0.8;
+
         if( node != NULL )
         {
             obj->fully_confident_cloud = 
@@ -96,6 +104,16 @@ public:
             obj->not_cloud = 
                 WJEDouble(node, "not_cloud", WJE_GET, 
                           obj->not_cloud);
+
+            obj->fully_confident_cirrus = 
+                WJEDouble(node, "fully_confident_cirrus", WJE_GET, 
+                          obj->fully_confident_cirrus);
+            obj->mostly_confident_cirrus = 
+                WJEDouble(node, "mostly_confident_cirrus", WJE_GET, 
+                          obj->mostly_confident_cirrus);
+            obj->partially_confident_cirrus = 
+                WJEDouble(node, "partially_confident_cirrus", WJE_GET, 
+                          obj->partially_confident_cirrus);
         }
         
         return obj;
@@ -110,6 +128,7 @@ public:
 
         for(int i=0; i < width; i++ )
         {
+            // Cloud bits
             switch( cloud[i] & 0xc000 ) {
               case 0xc000:
                 quality[i] = fully_confident_cloud;
@@ -128,6 +147,25 @@ public:
                     quality[i] = -1.0;
                 else
                     quality[i] = not_cloud;
+                break;
+            }
+
+            // Cirrus Bits
+            switch( cloud[i] & 0x3000 ) {
+              case 0x3000:
+                quality[i] *= fully_confident_cirrus;
+                break;
+
+              case 0x2000:
+                quality[i] *= mostly_confident_cirrus;
+                break;
+            
+              case 0x1000:
+                quality[i] *= partially_confident_cirrus;
+                break;
+
+              default:
+                // no alteration.
                 break;
             }
         }

@@ -318,6 +318,8 @@ class Tests(unittest.TestCase):
         os.unlink(json_file)
         
     def test_median_with_cloud(self):
+        # This test also a deliberately ignores partially confident
+        # cirrus markers.
         json_file = 'median_with_cloud.json'
         test_file = 'median_with_cloud_test.tif'
         shutil.copyfile('saojose/saojose_l8_chip.tif', test_file)
@@ -327,6 +329,7 @@ class Tests(unittest.TestCase):
             'compositors': [
                 {
                     'class': 'landsat8',
+                    'partially_confident_cirrus': 1.0,
                     },
                 {
                     'class': 'darkest',
@@ -368,12 +371,9 @@ class Tests(unittest.TestCase):
             'output_file': test_file,
             'compositors': [
                 {
-                    'class': 'landsat8',
-                    },
-                {
                     'class': 'darkest',
                     'scale_min': 0,
-                    'scale_max': 96000.0,
+                    'scale_max': 32000.0,
                     },
                 {
                     'class': 'percentile',
@@ -395,9 +395,7 @@ class Tests(unittest.TestCase):
         
         self.run_compositor(args)
 
-        # Why can't we use darkest_golden.tif?  There are 9 pixels different
-        # but I don't yet know why.
-        self.check('median_like_darkest_golden.tif', test_file)
+        self.check('darkest_golden.tif', test_file)
         os.unlink(test_file)
         os.unlink(json_file)
 

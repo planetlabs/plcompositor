@@ -20,11 +20,14 @@
 /*                             DarkQuality                             */
 /************************************************************************/
 
+#define DQ_MAX_BANDS 20
+
 class DarkQuality : public QualityMethodBase 
 {
     PLCInput *input;
     double    scale_min;
     double    scale_max;
+    double    band_weight[DQ_MAX_BANDS];
 
 public:
     DarkQuality() : QualityMethodBase("darkest") {}
@@ -39,12 +42,24 @@ public:
         obj->scale_min = 0.0;
         obj->scale_max = 256.0;
 
+        for(int i=0; i < DQ_MAX_BANDS; i++ )
+            obj->band_weight[i] = 1.0;
+
         if( node != NULL )
         {
             obj->scale_min = WJEDouble(node, "scale_min", WJE_GET, 
                                        obj->scale_min);
             obj->scale_max = WJEDouble(node, "scale_max", WJE_GET, 
                                        obj->scale_max);
+
+            for(int i=0; i < DQ_MAX_BANDS; i++ )
+            {
+                char band_name[30];
+                sprintf(band_name, "band_%d_weight", i+1);
+
+                obj->band_weight[i] =
+                    WJEDouble(node, band_name, WJE_GET, obj->band_weight[i]);
+            }
         }
 
         return obj;
@@ -63,7 +78,7 @@ public:
             float *pixels = lineObj->getBand(iBand);
 
             for(int i=0; i < width; i++ )
-                quality[i] += (scale_max - pixels[i]) * scale;
+                quality[i] += (scale_max - pixels[i]) * scale * band_weight[iBand];
         }
     
         GByte *alpha = lineObj->getAlpha();

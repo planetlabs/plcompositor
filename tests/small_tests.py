@@ -441,5 +441,49 @@ class Tests(unittest.TestCase):
         os.unlink(json_file)
         self.clean_files()
         
+    def test_darkest_alt_rgb_ratio_json(self):
+        json_file = 'small_darkest_alt_rgb_ratio.json'
+        test_file = self.make_file(TEMPLATE_RGB)
+
+        control = {
+            'output_file': test_file,
+            'compositors': [
+                {
+                    'class': 'darkest',
+                    'scale_min': 0.0,
+                    'scale_max': 255.0,
+                    'band_1_weight': 0.9,
+                    'band_2_weight': 0.05,
+                    'band_3_weight': 0.05,
+                    },
+                ],
+            'inputs': [
+                {
+                    'filename': self.make_file(TEMPLATE_RGB, 
+                                               [[[255, 12], [0, 11]],
+                                                [[10, 200], [100, 5]],
+                                                [[10, 200], [200, 5]]]),
+                    },
+                {
+                    'filename': self.make_file(TEMPLATE_RGB, 
+                                               [[[10, 255], [6, 5]],
+                                                [[10,  30], [6, 5]],
+                                                [[10,  30], [6, 5]]]),
+                    },
+                ]
+            }
+
+        open(json_file,'w').write(json.dumps(control))
+        self.run_compositor([ '-q', '-j', json_file])
+
+        self.compare_file(
+                test_file, [
+                    [[10, 12], [6, 5]],
+                    [[10, 200], [6, 5]],
+                    [[10, 200], [6, 5]],
+                    ])
+        os.unlink(json_file)
+        self.clean_files()
+        
 if __name__ == '__main__':
     unittest.main()

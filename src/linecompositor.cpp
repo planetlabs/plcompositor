@@ -201,10 +201,14 @@ void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
     if( plContext->qualityDS != NULL )
     {
         for(i = 0; i < plContext->inputFiles.size(); i++ )
-            plContext->qualityDS->GetRasterBand(i+2)->
+        {
+            CPLErr eErr = plContext->qualityDS->GetRasterBand(i+2)->
                 RasterIO(GF_Write, 0, line, width, 1, 
                          inputLines[i]->getQuality(), width, 1, GDT_Float32, 
                          0, 0);
+            if( eErr != CE_None )
+                exit(1);
+        }
     }
 
 /* -------------------------------------------------------------------- */

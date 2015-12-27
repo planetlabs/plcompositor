@@ -166,7 +166,6 @@ class QualityMethodBase {
 
     virtual int computeQuality(PLCInput *, PLCLine *) = 0;
     virtual int computeStackQuality(PLCContext *, std::vector<PLCLine *>&);
-    //virtual int computeStackQuality(PLContext *, std::vector<PLCLine *>&);
 
     virtual void mergeQuality(PLCInput *, PLCLine *);
 

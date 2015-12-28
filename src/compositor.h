@@ -147,8 +147,12 @@ class PLCContext {
     std::vector<PLCInput*> inputFiles;
     std::vector<QualityMethodBase*> qualityMethods;
 
-    PLCLine *     getOutputLine(int line);
-    void          writeOutputLine(int line, PLCLine *);
+    PLCLine *     lastOutputLine;
+    PLCLine *     thisOutputLine;
+    
+    PLCLine *     getNextOutputLine();
+    PLCLine *     getLastOutputLine() { return lastOutputLine; }
+    void          writeOutputLine();
 
     PLCHistogram  qualityHistogram;
 };

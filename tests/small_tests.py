@@ -14,6 +14,9 @@ TEMPLATE_GRAY = 'data/2x2_gray_template.tif'
 TEMPLATE_RGB  = 'data/2x2_rgb_template.tif'
 TEMPLATE_RGBA = 'data/2x2_rgba_template.tif'
 
+TEMPLATE_GRAY_3X3 = 'data/3x3_gray_template.tif'
+TEMPLATE_FLOAT_3X3 = 'data/3x3_float_template.tif'
+
 class Tests(unittest.TestCase):
 
     def setUp(self):
@@ -67,7 +70,7 @@ class Tests(unittest.TestCase):
             
             raise Exception('%s differs from golden data' % test_file)
 
-    def run_compositor(self, args):
+    def run_compositor(self, args, fail_ok = False):
         all_args = [
             '../compositor',
             '--config', 'COMPOSITOR_SCHEMA', '../compositor_schema.json',
@@ -90,6 +93,9 @@ class Tests(unittest.TestCase):
         err = open(filename_err).read()
         os.unlink(filename_out)
         os.unlink(filename_err)
+
+        if not fail_ok and rc != 0:
+            self.fail('compositor failure: %s' % err)
         
         return (rc, out, err)
 
@@ -370,6 +376,72 @@ class Tests(unittest.TestCase):
         os.unlink(json_file)
         self.clean_files()
         
+    def test_same_source_json(self):
+        json_file = 'same_source.json'
+        test_file = self.make_file(TEMPLATE_GRAY_3X3)
+        quality_out = 'qfj_test_same_source.tif'
+
+        control = {
+            'output_file': test_file,
+            'quality_output': quality_out,
+            'compositors': [
+                {
+                    'class': 'qualityfromfile',
+                    'file_key': 'quality',
+                    'scale_min': 0.0,
+                    'scale_max': 1.0,
+                    },
+                {
+                    'class': 'samesource',
+                    'mismatch_penalty': 0.3,
+                    },
+                ],
+            'inputs': [
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY_3X3, 
+                                               [[101, 101, 101],
+                                                [101, 101, 101],
+                                                [101, 101, 101]]),
+                    'quality': self.make_file(TEMPLATE_FLOAT_3X3, 
+                                              [[1.0, 1.0, 1.0],
+                                               [0.9, 0.9, 0.9],
+                                               [0.4, 0.4, 0.4]]),
+                    },
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY_3X3, 
+                                               [[102, 102, 102],
+                                                [102, 102, 102],
+                                                [102, 102, 102]]),
+                    'quality': self.make_file(TEMPLATE_FLOAT_3X3, 
+                                              [[0.9, 0.9, 0.9],
+                                               [1.0, 1.0, 1.0],
+                                               [1.0, 1.0, 1.0]]),
+                    },
+                ],
+            }
+
+        open(json_file,'w').write(json.dumps(control))
+        self.run_compositor(['-q', '-j', json_file])
+
+        self.compare_file(test_file, [[101, 101, 101],
+                                      [101, 101, 101],
+                                      [102, 102, 102]])
+        self.compare_file(quality_out, 
+                          [[[1.0, 1.0, 1.0],
+                            [0.9, 0.9, 0.9],
+                            [0.8, 0.7, 0.8]],
+                           [[1.0, 1.0, 1.0],
+                            [0.9, 0.9, 0.9],
+                            [0.4, 0.4, 0.4]],
+                           [[0.9, 0.9, 0.9],
+                            [0.8, 0.7, 0.8],
+                            [0.8, 0.7, 0.8]]],
+                          tolerance=0.001)
+
+        os.unlink(quality_out)
+        os.unlink(json_file)
+        self.clean_files()
+        
     def test_schema_validation(self):
         test_file = self.make_file(TEMPLATE_GRAY)
         json_file = 'schema_test.json'
@@ -395,7 +467,8 @@ class Tests(unittest.TestCase):
             }
 
         open(json_file,'w').write(json.dumps(control))
-        (rc, out, err) = self.run_compositor(['-q', '-j', json_file])
+        (rc, out, err) = self.run_compositor(['-q', '-j', json_file],
+                                             fail_ok = True)
         
         self.assertNotEqual(0, rc)
         self.assertEqual('', out)

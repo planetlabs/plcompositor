@@ -147,8 +147,12 @@ class PLCContext {
     std::vector<PLCInput*> inputFiles;
     std::vector<QualityMethodBase*> qualityMethods;
 
-    PLCLine *     getOutputLine(int line);
-    void          writeOutputLine(int line, PLCLine *);
+    PLCLine *     lastOutputLine;
+    PLCLine *     thisOutputLine;
+    
+    PLCLine *     getNextOutputLine();
+    PLCLine *     getLastOutputLine() { return lastOutputLine; }
+    void          writeOutputLine();
 
     PLCHistogram  qualityHistogram;
 };
@@ -166,7 +170,6 @@ class QualityMethodBase {
 
     virtual int computeQuality(PLCInput *, PLCLine *) = 0;
     virtual int computeStackQuality(PLCContext *, std::vector<PLCLine *>&);
-    //virtual int computeStackQuality(PLContext *, std::vector<PLCLine *>&);
 
     virtual void mergeQuality(PLCInput *, PLCLine *);
 

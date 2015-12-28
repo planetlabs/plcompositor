@@ -340,14 +340,13 @@ int main(int argc, char **argv)
     {
         pfnProgress(line / (double) plContext.height, NULL, NULL);
 
-        plContext.line = line;
-        PLCLine *lineObj = plContext.getOutputLine(line);
+        PLCLine *lineObj = plContext.getNextOutputLine();
+
+        CPLAssert( plContext.line == line );
 
         LineCompositor(&plContext, line, lineObj );
 
-        plContext.writeOutputLine(line, lineObj);
-        
-        delete lineObj;
+        plContext.writeOutputLine();
     }
     pfnProgress(1.0, NULL, NULL);
 

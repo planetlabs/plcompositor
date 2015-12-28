@@ -27,7 +27,8 @@
 			"type": "string",
 			"required": true,
 			"enum": ["scene_measure", "darkest", "greenest",
-				 "landsat8", "percentile", "qualityfromfile"]
+				 "landsat8", "percentile", "qualityfromfile",
+				 "samesource"]
 		    }
 		}
 	    }

@@ -59,7 +59,8 @@ void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
     for(unsigned int iQM = 0; iQM < plContext->qualityMethods.size(); iQM++ )
     {
         // TODO(check result status)
-        plContext->qualityMethods[iQM]->computeStackQuality(plContext, inputLines);
+        plContext->qualityMethods[iQM]->computeStackQuality(
+            plContext, inputLines);
 
         if( plContext->isDebugLine(line) )
         {
@@ -69,7 +70,8 @@ void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
                 {
                     for( i=0; i < inputLines.size(); i++ )
                     {
-                        printf( "Input %d quality is %.5f @ %dx%d for quality phase %d.\n", 
+                        printf( "Input %d quality is %.5f @ %dx%d for "
+                                "quality phase %d.\n", 
                                 i+1,
                                 inputLines[i]->getNewQuality()[iPixel], 
                                 iPixel, line, iQM );
@@ -79,7 +81,6 @@ void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
         }
 
         // opportunity here to save intermediate "New" quality measures.
-
         // merge "newQuality()" back into "quality", and reset new Quality.
         for(i = 0; i < inputLines.size(); i++)
         {
@@ -95,7 +96,8 @@ void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
                 {
                     for( i=0; i < inputLines.size(); i++ )
                     {
-                        printf( "Input %d quality is %.5f @ %dx%d after merge for quality phase %d.\n", 
+                        printf( "Input %d quality is %.5f @ %dx%d after merge "
+                                "for quality phase %d.\n", 
                                 i+1,
                                 inputLines[i]->getQuality()[iPixel], 
                                 iPixel, line, iQM );
@@ -199,10 +201,14 @@ void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj)
     if( plContext->qualityDS != NULL )
     {
         for(i = 0; i < plContext->inputFiles.size(); i++ )
-            plContext->qualityDS->GetRasterBand(i+2)->
+        {
+            CPLErr eErr = plContext->qualityDS->GetRasterBand(i+2)->
                 RasterIO(GF_Write, 0, line, width, 1, 
                          inputLines[i]->getQuality(), width, 1, GDT_Float32, 
                          0, 0);
+            if( eErr != CE_None )
+                exit(1);
+        }
     }
 
 /* -------------------------------------------------------------------- */

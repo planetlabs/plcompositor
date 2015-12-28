@@ -29,6 +29,9 @@ PLCContext::PLCContext()
     quiet = FALSE;
     verbose = 0;
     averageBestRatio = 0.0;
+    line = -1;
+    lastOutputLine = NULL;
+    thisOutputLine = NULL;
 }
 
 /************************************************************************/
@@ -38,19 +41,35 @@ PLCContext::PLCContext()
 PLCContext::~PLCContext()
 
 {
+    delete lastOutputLine;
+    delete thisOutputLine;
 }
 
 /************************************************************************/
-/*                           getOutputLine()                            */
+/*                         getNextOutputLine()                          */
 /************************************************************************/
 
-PLCLine *PLCContext::getOutputLine(int line)
+PLCLine *PLCContext::getNextOutputLine()
 
 {
     CPLAssert( outputDS != NULL );
+
+/* -------------------------------------------------------------------- */
+/*      Roll over last line buffer.                                     */
+/* -------------------------------------------------------------------- */
+    if( lastOutputLine != NULL )
+        delete lastOutputLine;
+
+    lastOutputLine = thisOutputLine;
     
+    line += 1;
+    CPLAssert( line >= 0 && line < outputDS->GetRasterYSize() );
+    
+/* -------------------------------------------------------------------- */
+/*      Fetch new line.                                                 */
+/* -------------------------------------------------------------------- */
     int  i, width = outputDS->GetRasterXSize();
-    PLCLine *lineObj = new PLCLine(width);
+    thisOutputLine = new PLCLine(width);
 
     for( i=0; i < outputDS->GetRasterCount(); i++ )
     {
@@ -58,26 +77,28 @@ PLCLine *PLCContext::getOutputLine(int line)
         GDALRasterBand *band = outputDS->GetRasterBand(i+1);
         
         if( band->GetColorInterpretation() == GCI_AlphaBand )
-            eErr = band->RasterIO(GF_Read, 0, line, width, 1, 
-                                  lineObj->getAlpha(), width, 1, GDT_Byte,
-                                  0, 0);
+            eErr = band->RasterIO(
+                GF_Read, 0, line, width, 1, 
+                thisOutputLine->getAlpha(), width, 1, GDT_Byte,
+                0, 0);
         else
-            eErr = band->RasterIO(GF_Read, 0, line, width, 1, 
-                                  lineObj->getBand(i), width, 1, GDT_Float32, 
-                                  0, 0);
+            eErr = band->RasterIO(
+                GF_Read, 0, line, width, 1, 
+                thisOutputLine->getBand(i), width, 1, GDT_Float32, 
+                0, 0);
 
         if( eErr != CE_None )
             exit(1);
     }
 
-    return lineObj;
+    return thisOutputLine;
 }
 
 /************************************************************************/
 /*                          writeOutputLine()                           */
 /************************************************************************/
 
-void PLCContext::writeOutputLine(int line, PLCLine *lineObj)
+void PLCContext::writeOutputLine()
 
 {
     CPLAssert( outputDS != NULL );
@@ -90,13 +111,13 @@ void PLCContext::writeOutputLine(int line, PLCLine *lineObj)
         GDALRasterBand *band = outputDS->GetRasterBand(i+1);
         
         if( band->GetColorInterpretation() == GCI_AlphaBand )
-            eErr = band->RasterIO(GF_Write, 0, line, width, 1, 
-                                  lineObj->getAlpha(), width, 1, GDT_Byte,
-                                  0, 0);
+            eErr = band->RasterIO(
+                GF_Write, 0, line, width, 1, 
+                thisOutputLine->getAlpha(), width, 1, GDT_Byte, 0, 0);
         else
-            eErr = band->RasterIO(GF_Write, 0, line, width, 1, 
-                                  lineObj->getBand(i), width, 1, GDT_Float32, 
-                                  0, 0);
+            eErr = band->RasterIO(
+                GF_Write, 0, line, width, 1, 
+                thisOutputLine->getBand(i), width, 1, GDT_Float32, 0, 0);
 
         if( eErr != CE_None )
             exit(1);
@@ -105,14 +126,14 @@ void PLCContext::writeOutputLine(int line, PLCLine *lineObj)
         {
             eErr = sourceTraceDS->GetRasterBand(1)->
                 RasterIO(GF_Write, 0, line, width, 1, 
-                         lineObj->getSource(), width, 1, GDT_UInt16, 
+                         thisOutputLine->getSource(), width, 1, GDT_UInt16, 
                          0, 0);
         }
         if( qualityDS != NULL )
         {
             eErr = qualityDS->GetRasterBand(1)->
                 RasterIO(GF_Write, 0, line, width, 1, 
-                         lineObj->getQuality(), width, 1, GDT_Float32, 
+                         thisOutputLine->getQuality(), width, 1, GDT_Float32, 
                          0, 0);
         }
     }

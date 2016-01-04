@@ -350,6 +350,16 @@ int main(int argc, char **argv)
     }
     pfnProgress(1.0, NULL, NULL);
 
+/* -------------------------------------------------------------------- */
+/*      Do we need to post process the source trace, and rebuild the    */
+/*      output?                                                         */
+/* -------------------------------------------------------------------- */
+    if( plContext.sourceSieveThreshold > 0 )
+        SourcePostProcess(&plContext);
+    
+/* -------------------------------------------------------------------- */
+/*      Close up.                                                       */
+/* -------------------------------------------------------------------- */
     GDALClose(plContext.outputDS);
 
     if( plContext.sourceTraceDS )

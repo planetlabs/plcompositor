@@ -29,6 +29,7 @@ PLCContext::PLCContext()
     quiet = FALSE;
     verbose = 0;
     averageBestRatio = 0.0;
+    sourceSieveThreshold = 0;
     line = -1;
     lastOutputLine = NULL;
     thisOutputLine = NULL;

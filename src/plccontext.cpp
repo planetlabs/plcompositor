@@ -29,6 +29,7 @@ PLCContext::PLCContext()
     quiet = FALSE;
     verbose = 0;
     averageBestRatio = 0.0;
+    sourceSieveThreshold = 0;
     line = -1;
     lastOutputLine = NULL;
     thisOutputLine = NULL;
@@ -98,7 +99,7 @@ PLCLine *PLCContext::getNextOutputLine()
 /*                          writeOutputLine()                           */
 /************************************************************************/
 
-void PLCContext::writeOutputLine()
+void PLCContext::writeOutputLine(bool postProcessing)
 
 {
     CPLAssert( outputDS != NULL );
@@ -122,14 +123,14 @@ void PLCContext::writeOutputLine()
         if( eErr != CE_None )
             exit(1);
 
-        if( sourceTraceDS != NULL )
+        if( sourceTraceDS != NULL && !postProcessing)
         {
             eErr = sourceTraceDS->GetRasterBand(1)->
                 RasterIO(GF_Write, 0, line, width, 1, 
                          thisOutputLine->getSource(), width, 1, GDT_UInt16, 
                          0, 0);
         }
-        if( qualityDS != NULL )
+        if( qualityDS != NULL && !postProcessing)
         {
             eErr = qualityDS->GetRasterBand(1)->
                 RasterIO(GF_Write, 0, line, width, 1, 
@@ -267,6 +268,8 @@ void PLCContext::initializeFromJson(WJElement doc)
         WJEString(doc, "quality_output", WJE_GET, qualityFilename);
     averageBestRatio = 
         WJEDouble(doc, "average_best_ratio", WJE_GET, 0.0);
+    sourceSieveThreshold = (int)
+        WJEInt32(doc, "source_sieve_threshold", WJE_GET, 0);
 
     initializeQualityMethods( WJEArray(doc, "compositors", WJE_GET) );
     

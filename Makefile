@@ -14,6 +14,7 @@ OBJ =	src/plcinput.o \
 	src/plcline.o \
 	src/plccontext.o \
 	src/plchistogram.o \
+	src/sourcepostprocess.o \
 	\
 	src/qualitymethodbase.o \
 	src/linecompositor.o \

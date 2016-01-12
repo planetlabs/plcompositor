@@ -26,6 +26,8 @@ class Tests(unittest.TestCase):
         pass
 
     def make_file(self, template_filename, data=None, filename = None):
+        template_filename = os.path.join(os.path.dirname(__file__),
+                                         template_filename)
         if filename is None:
             caller = traceback.extract_stack(limit=2)[0][2]
             filename = '%s_%d.tif' % (caller, len(self.temp_test_files))
@@ -439,6 +441,58 @@ class Tests(unittest.TestCase):
                           tolerance=0.001)
 
         os.unlink(quality_out)
+        os.unlink(json_file)
+        self.clean_files()
+        
+    def test_sieve_json(self):
+        json_file = 'sieve.json'
+        test_file = self.make_file(TEMPLATE_GRAY_3X3)
+        st_out = 'st_test_same_source.tif'
+
+        control = {
+            'output_file': test_file,
+            'source_sieve_threshold': 2,
+            'source_trace': st_out,
+            'compositors': [
+                {
+                    'class': 'qualityfromfile',
+                    'file_key': 'quality',
+                    'scale_min': 0.0,
+                    'scale_max': 1.0,
+                    }
+                ],
+            'inputs': [
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY_3X3, 
+                                               [[101, 101, 101],
+                                                [101, 101, 101],
+                                                [101, 101, 101]]),
+                    'quality': self.make_file(TEMPLATE_FLOAT_3X3, 
+                                              [[1.0, 0.0, 1.0],
+                                               [0.0, 0.0, 0.0],
+                                               [1.0, 1.0, 1.0]]),
+                    },
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY_3X3, 
+                                               [[102, 102, 102],
+                                                [102, 102, 102],
+                                                [102, 102, 102]]),
+                    'quality': self.make_file(TEMPLATE_FLOAT_3X3, 
+                                              [[0.5, 0.5, 0.5],
+                                               [0.5, 0.5, 0.5],
+                                               [0.5, 0.5, 0.5]]),
+                    },
+                ],
+            }
+
+        open(json_file,'w').write(json.dumps(control))
+        self.run_compositor(['-q', '-j', json_file])
+
+        self.compare_file(test_file, [[102, 102, 102],
+                                      [102, 102, 102],
+                                      [101, 101, 101]])
+
+        os.unlink(st_out)
         os.unlink(json_file)
         self.clean_files()
         

@@ -126,6 +126,8 @@ class PLCContext {
 
     double        averageBestRatio;
 
+    int           sourceSieveThreshold;
+    
     std::vector<int> debugPixels;
     int           isDebugPixel(int pixel, int line);
     int           isDebugLine(int line);
@@ -152,7 +154,7 @@ class PLCContext {
     
     PLCLine *     getNextOutputLine();
     PLCLine *     getLastOutputLine() { return lastOutputLine; }
-    void          writeOutputLine();
+    void          writeOutputLine(bool postProcessing = false);
 
     PLCHistogram  qualityHistogram;
 };
@@ -181,3 +183,5 @@ class QualityMethodBase {
 };
 
 void LineCompositor(PLCContext *plContext, int line, PLCLine *lineObj);
+
+void SourcePostProcess(PLCContext *plContext);

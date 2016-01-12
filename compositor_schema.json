@@ -17,6 +17,9 @@
 	"average_best_ratio": {
 	    "type": "number"
 	},
+	"source_sieve_threshold": {
+	    "type": "number"
+	},
 	"compositors": {
 	    "type": "array",
 	    "required": true,

@@ -127,6 +127,12 @@ static void RebuildOutputLineFromSourceMap(PLCContext *plContext,
     }
 
 /* -------------------------------------------------------------------- */
+/*      Cleanup input lines.                                            */
+/* -------------------------------------------------------------------- */
+    for(i = 0; i < plContext->inputFiles.size(); i++ )
+        delete inputLines[i];
+
+/* -------------------------------------------------------------------- */
 /*      Write out the image pixels and alpha.                           */
 /* -------------------------------------------------------------------- */
     plContext->writeOutputLine(true);

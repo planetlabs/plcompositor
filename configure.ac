@@ -1,6 +1,6 @@
 AC_INIT(plcompositor)
 AC_CONFIG_MACRO_DIR([m4/])
-AC_PREREQ([2.69])
+AC_PREREQ([2.68])
 AC_CONFIG_SRCDIR([src/])
 AC_CONFIG_HEADERS([config.h])
 
@@ -21,9 +21,6 @@ AC_CHECK_HEADER([wjreader.h], [], [AC_MSG_ERROR(
 AC_CHECK_HEADER([wjelement.h], [], [AC_MSG_ERROR(
     [Unable to find wjelement.h (hint: use CPPFLAGS="-I/path/to/wjelement/include/")])]
 )
-
-# Checks for typedefs, structures, and compiler characteristics.
-AC_CHECK_HEADER_STDBOOL
 
 # Checks for library functions.
 AC_CHECK_FUNCS([floor memset strerror])

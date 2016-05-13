@@ -74,9 +74,10 @@ public:
              iInput < plContext->inputFiles.size(); iInput++ )
         {
             PLCInput *input = plContext->inputFiles[iInput];
-            float measureValue = input->getQM(measureName);
+            float measureDefault = -12345.0;
+            float measureValue = input->getQM(measureName, measureDefault );
             
-            if( measureValue < 0.0 )
+            if( measureValue == measureDefault )
             {
                 CPLError( CE_Fatal, CPLE_AppDefined,
                           "Scene %s lacks quality measure %s.", 

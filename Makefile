@@ -19,6 +19,7 @@ OBJ =	src/plcinput.o \
 	src/qualitymethodbase.o \
 	src/linecompositor.o \
 	src/darkestquality.o \
+	src/reddestquality.o \
 	src/greenestquality.o \
 	src/scenemeasurequality.o \
 	src/landsat8cloudquality.o \

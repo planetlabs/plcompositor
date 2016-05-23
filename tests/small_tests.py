@@ -230,7 +230,34 @@ class Tests(unittest.TestCase):
                            [[255, 255], [255, 255]]])
 
         self.clean_files()
-        
+
+    def test_small_reddest_rgb(self):
+        test_file = self.make_file(TEMPLATE_RGB)
+        args = [
+            '-q',
+            '-s', 'quality', 'reddest',
+            '-o', test_file,
+            '-i',
+            self.make_file(TEMPLATE_RGB,
+                           [[[9, 9], [0, 9]],
+                            [[9, 1], [9, 9]],
+                            [[9, 1], [9, 0]]]),
+            '-i',
+            self.make_file(TEMPLATE_RGB,
+                           [[[9, 8], [6, 6]],
+                            [[0, 8], [6, 5]],
+                            [[0, 8], [6, 5]]]),
+            ]
+
+        self.run_compositor(args)
+
+        self.compare_file(test_file,
+                          [[[9, 9], [6, 9]],
+                           [[0, 1], [6, 9]],
+                           [[0, 1], [6, 0]]])
+
+        self.clean_files()
+
     def test_percentile(self):
         test_file = self.make_file(TEMPLATE_GRAY)
         

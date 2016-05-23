@@ -1,14 +1,23 @@
+# @configure_input@
 
-LIBS = -L/home/warmerdam/bld/lib -L/usr/local/lib -L/usr/local/pl/lib \
-	-lgdal -lwjelement -lwjreader
-INCLUDE = -I/home/warmerdam/bld/include \
-	-I/usr/include/gdal \
-	-I/usr/local/include \
-	-I/usr/local/pl/include
+prefix = @prefix@
 
-OPTFLAGS = -g -DDEBUG
+OPTFLAGS = -Wall -g -DDEBUG
 
-CPPFLAGS = -Wall $(INCLUDE) $(OPTFLAGS)
+CC       = @CC@
+CFLAGS   = @CFLAGS@
+CPPFLAGS = @CPPFLAGS@ @GDAL_CFLAGS@ $(OPTFLAGS)
+LDFLAGS  = @LDFLAGS@
+
+all: compositor
+
+Makefile: Makefile.in config.status
+	./config.status Makefile
+
+config.status: configure
+	./config.status --recheck
+
+LIBS = 	-lwjelement -lwjreader @GDAL_LDFLAGS@
 
 OBJ =	src/plcinput.o \
 	src/plcline.o \
@@ -27,7 +36,7 @@ OBJ =	src/plcinput.o \
 	src/samesourcequality.o
 
 compositor:	src/compositor.o $(OBJ)
-	g++ -o compositor src/compositor.o $(OBJ) $(LIBS)
+	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
 
 $(OBJ):	src/compositor.h Makefile
 

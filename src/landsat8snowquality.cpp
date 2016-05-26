@@ -39,7 +39,7 @@ class Landsat8SnowQuality : public QualityMethodBase
     float not_snow;
 
 public:
-    Landsat8SnowQuality() : QualityMethodBase("landsat8") {}
+    Landsat8SnowQuality() : QualityMethodBase("landsat8snow") {}
     ~Landsat8SnowQuality() {}
 
     /********************************************************************/

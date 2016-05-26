@@ -31,7 +31,7 @@
 			"required": true,
 			"enum": ["scene_measure", "darkest", "greenest",
 				 "landsat8", "percentile", "qualityfromfile",
-				 "samesource"]
+				 "samesource", "landsat8snow"]
 		    }
 		}
 	    }

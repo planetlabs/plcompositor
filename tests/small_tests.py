@@ -13,6 +13,7 @@ TEMPLATE_FLOAT = 'data/2x2_float_template.tif'
 TEMPLATE_GRAY = 'data/2x2_gray_template.tif'
 TEMPLATE_RGB  = 'data/2x2_rgb_template.tif'
 TEMPLATE_RGBA = 'data/2x2_rgba_template.tif'
+TEMPLATE_UINT16 = 'data/2x2_gray_uint16_template.tif'
 
 TEMPLATE_GRAY_3X3 = 'data/3x3_gray_template.tif'
 TEMPLATE_FLOAT_3X3 = 'data/3x3_float_template.tif'
@@ -373,6 +374,72 @@ class Tests(unittest.TestCase):
                            [[0.6000000238418579, 0.5400000214576721],
                             [-1.0, 0.07500000298023224]]],
                           tolerance=0.001)
+
+        os.unlink(quality_out)
+        os.unlink(json_file)
+        self.clean_files()
+        
+    def test_snow_quality(self):
+        json_file = 'quality_file.json'
+        test_file = self.make_file(TEMPLATE_GRAY)
+        quality_out = 'snow_test_quality.tif'
+        
+        snow_only = 23552
+        cloud_only = 53248
+        cloud_and_snow = 56320
+        clear = 20480
+        cirrus = 28672
+
+        control = {
+            'output_file': test_file,
+            'quality_output': quality_out,
+            'compositors': [
+                {"class": "landsat8",
+                 "fully_confident_cloud": 0.01,
+                 },
+                {"class": "landsat8snow",
+                 "fully_confident_snow": 0.02,
+                 },
+                ],
+            'inputs': [
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY, 
+                                               [[101, 101], [101, 101]]),
+                    'cloud_file': self.make_file(TEMPLATE_UINT16, 
+                                              [[clear, snow_only], 
+                                               [cloud_and_snow, cloud_only]]),
+                    },
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY, 
+                                               [[102, 102], [102, 102]]),
+                    'cloud_file': self.make_file(TEMPLATE_UINT16,
+                                              [[cirrus, cloud_only], 
+                                               [cloud_only, cirrus]]),
+                    },
+                {
+                    'filename': self.make_file(TEMPLATE_GRAY, 
+                                               [[103, 103], [103, 103]]),
+                    'cloud_file': self.make_file(TEMPLATE_UINT16,
+                                              [[snow_only, cloud_and_snow], 
+                                               [clear, snow_only]]),
+                    },
+                ],
+            }
+
+        open(json_file,'w').write(json.dumps(control))
+        self.run_compositor(['-q', '-j', json_file])
+
+        self.compare_file(test_file, [[101, 101], [103, 102]])
+	self.compare_file(quality_out,
+                          [[[0.528,   0.01056],
+                            [0.528,   0.132]],
+                           [[0.528,   0.01056],
+                            [0.00016, 0.008]],
+                           [[0.132,   0.008],
+                            [0.008,   0.132]],
+                           [[0.01056, 0.00016],
+                            [0.528,   0.01056]]], 
+                           tolerance=0.001)
 
         os.unlink(quality_out)
         os.unlink(json_file)

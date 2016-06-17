@@ -22,6 +22,7 @@ OBJ =	src/plcinput.o \
 	src/greenestquality.o \
 	src/scenemeasurequality.o \
 	src/landsat8cloudquality.o \
+	src/landsat8snowquality.o \
 	src/percentilequality.o \
 	src/qualityfromfile.o \
 	src/samesourcequality.o

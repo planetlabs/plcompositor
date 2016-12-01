@@ -88,7 +88,10 @@ public:
 
         for(int i=0; i < width; i++ )
         {
-            if ( value[i] & 0x2 ) {
+            if ( value[i] == 0 ) {
+                // Always skip pixels at edges with nodata cloud values
+                quality[i] = -1.0;
+            } else if ( value[i] & 0x2 ) {
                 quality[i] = cloud;
             } else {
                 quality[i] = not_cloud;

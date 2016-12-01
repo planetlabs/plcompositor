@@ -32,7 +32,10 @@ class Landsat8SRCloudQuality : public QualityMethodBase
     float cloud;
     float shadow;
     float adjacent;
-    float aerosol;
+    float climatology_level_aerosol;
+    float low_aerosol;
+    float average_aerosol;
+    float high_aerosol;
     float not_cloud;
 
 public:
@@ -50,7 +53,10 @@ public:
         obj->cloud = -1.0;
         obj->shadow = 0.33;
         obj->adjacent = 0.33;
-        obj->aerosol = 0.66;
+        obj->climatology_level_aerosol = 1.0;
+        obj->low_aerosol = 0.75;
+        obj->average_aerosol = 0.5;
+        obj->high_aerosol = -1.0;
         obj->not_cloud = 1.0;
 
         if( node != NULL )
@@ -67,9 +73,18 @@ public:
             obj->adjacent =
                 WJEDouble(node, "adjacent", WJE_GET,
                           obj->adjacent);
-            obj->aerosol =
-                WJEDouble(node, "aerosol", WJE_GET,
-                          obj->aerosol);
+            obj->climatology_level_aerosol =
+                WJEDouble(node, "climatology_level_aerosol", WJE_GET,
+                          obj->climatology_level_aerosol);
+            obj->low_aerosol =
+                WJEDouble(node, "low_aerosol", WJE_GET,
+                          obj->low_aerosol);
+            obj->average_aerosol =
+                WJEDouble(node, "average_aerosol", WJE_GET,
+                          obj->average_aerosol);
+            obj->high_aerosol =
+                WJEDouble(node, "high_aerosol", WJE_GET,
+                          obj->high_aerosol);
             obj->not_cloud = 
                 WJEDouble(node, "not_cloud", WJE_GET, 
                           obj->not_cloud);
@@ -103,8 +118,22 @@ public:
                 quality[i] *= adjacent;
             if ( value[i] & 0x8 ) 
                 quality[i] *= shadow;
-            if ( (value[i] & 0x10) | (value[i] & 0x20) ) 
-                quality[i] *= aerosol;
+
+            // Aerosol values take up two bits.
+            switch ( (value[i] & 0x10) + 2 * (value[i] & 0x20) ) {
+                case 0:
+                    quality[i] *= climatology_level_aerosol;
+                    break;
+                case 1:
+                    quality[i] *= low_aerosol;
+                    break;
+                case 2:
+                    quality[i] *= average_aerosol;
+                    break;
+                case 3:
+                    quality[i] *= high_aerosol;
+                    break;
+            }
         }
 
         cloudHistogram.accumulate(quality, width);

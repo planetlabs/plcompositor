@@ -19,8 +19,8 @@
 /************************************************************************/
 /*                        Landsat8SRCloudQuality()                      */
 /*                                                                      */
-/*      Compute qualities for this line from the Landsat8 SR quality    */
-/*      mask values.                                                    */
+/*      Compute qualities for this line from the Landsat8 CFMask        */
+/*      quality mask values.                                            */
 /************************************************************************/
 
 class Landsat8CFMaskCloudQuality : public QualityMethodBase

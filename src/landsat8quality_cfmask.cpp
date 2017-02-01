@@ -23,7 +23,7 @@
 /*      quality mask values.                                            */
 /************************************************************************/
 
-class Landsat8CFMaskCloudQuality : public QualityMethodBase
+class Landsat8CFMaskQuality : public QualityMethodBase
 {
     PLCContext *context;
     PLCHistogram cloudHistogram;

@@ -40,7 +40,7 @@ public:
     /********************************************************************/
     QualityMethodBase *create(PLCContext* context, WJElement node) {
 
-        Landsat8CFMaskCloudQuality *obj = new Landsat8CFMaskCloudQuality();
+        Landsat8CFMaskQuality *obj = new Landsat8CFMaskQuality();
         obj->context = context;
         obj->cloudHistogram.counts.resize(6);
 

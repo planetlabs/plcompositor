@@ -28,10 +28,11 @@ class Landsat8CFMaskQuality : public QualityMethodBase
     PLCContext *context;
     PLCHistogram cloudHistogram;
 
-    float fully_confident_cloud;
-    float mostly_confident_cloud;
-    float partially_confident_cloud;
-    float not_cloud;
+    float clear;
+    float water;
+    float cloud_shadow;
+    float snow;
+    float cloud;
 
 public:
     Landsat8CFMaskQuality() : QualityMethodBase("landsat8_cfmask") {}
@@ -76,12 +77,12 @@ public:
     int computeQuality(PLCInput *input, PLCLine *lineObj) {
 
         float *quality = lineObj->getNewQuality();
-        unsigned short *cloud = lineObj->getCloud();
+        unsigned short *value = lineObj->getCloud();
         int width = lineObj->getWidth();
 
         for(int i=0; i < width; i++ )
         {
-            switch( cloud[i] ) {
+            switch( value[i] ) {
 
               case 255:
                 quality[i] = -1.0;

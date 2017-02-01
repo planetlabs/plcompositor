@@ -17,10 +17,10 @@
 #include "compositor.h"
 
 /************************************************************************/
-/*                    Landsat8CFMaskCloudQuality()                      */
+/*                         Landsat8CFMaskQuality()                      */
 /*                                                                      */
 /*      Compute qualities for this line from the Landsat8 CFMask        */
-/*      cloud confidence mask.                                          */
+/*      quality mask values.                                            */
 /************************************************************************/
 
 class Landsat8CFMaskCloudQuality : public QualityMethodBase
@@ -34,8 +34,8 @@ class Landsat8CFMaskCloudQuality : public QualityMethodBase
     float not_cloud;
 
 public:
-    Landsat8CFMaskCloudQuality() : QualityMethodBase("landsat8_cfmask_cloud") {}
-    ~Landsat8CFMaskCloudQuality() {}
+    Landsat8CFMaskQuality() : QualityMethodBase("landsat8_cfmask") {}
+    ~Landsat8CFMaskQuality() {}
 
     /********************************************************************/
     QualityMethodBase *create(PLCContext* context, WJElement node) {
@@ -44,25 +44,29 @@ public:
         obj->context = context;
         obj->cloudHistogram.counts.resize(6);
 
-        obj->fully_confident_cloud = -1.0;
-        obj->mostly_confident_cloud = 0.33;
-        obj->partially_confident_cloud = 0.66;
-        obj->not_cloud = 1.0;
+        obj->clear = 1.0;
+        obj->water = 1.0;
+        obj->cloud_shadow = 0.01;
+        obj->snow = 1.0;
+        obj->cloud = 0.01;
 
         if( node != NULL )
         {
-          obj->fully_confident_cloud = 
-              WJEDouble(node, "fully_confident_cloud", WJE_GET, 
-                        obj->fully_confident_cloud);
-          obj->mostly_confident_cloud = 
-              WJEDouble(node, "mostly_confident_cloud", WJE_GET, 
-                        obj->mostly_confident_cloud);
-          obj->partially_confident_cloud = 
-              WJEDouble(node, "partially_confident_cloud", WJE_GET, 
-                        obj->partially_confident_cloud);
-          obj->not_cloud = 
-              WJEDouble(node, "not_cloud", WJE_GET, 
-                        obj->not_cloud);
+          obj->clear =
+              WJEDouble(node, "clear", WJE_GET,
+                        obj->clear);
+          obj->water = 
+              WJEDouble(node, "water", WJE_GET,
+                        obj->water);
+          obj->cloud_shadow =
+              WJEDouble(node, "cloud_shadow", WJE_GET,
+                        obj->cloud_shadow);
+          obj->snow = 
+              WJEDouble(node, "snow", WJE_GET,
+                        obj->snow);
+          obj->cloud = 
+              WJEDouble(node, "cloud", WJE_GET,
+                        obj->cloud);
         }
 
         return obj;
@@ -83,20 +87,24 @@ public:
                 quality[i] = -1.0;
                 break;
 
-              case 3:
-                quality[i] = fully_confident_cloud;
-                break;
-
-              case 2:
-                quality[i] = mostly_confident_cloud;
+              case 0:
+                quality[i] = clear;
                 break;
 
               case 1:
-                quality[i] = partially_confident_cloud;
+                quality[i] = water;
                 break;
 
-              case 0:
-                quality[i] = not_cloud;
+              case 2:
+                quality[i] = cloud_shadow;
+                break;
+
+              case 3:
+                quality[i] = snow;
+                break;
+
+              case 4:
+                quality[i] = cloud;
                 break;
             }
         }
@@ -105,10 +113,10 @@ public:
 
         if( context->line == context->height - 1
             && context->verbose > 0 )
-            cloudHistogram.report(stdout, "L8 CFMask Cloud Quality");
+            cloudHistogram.report(stdout, "L8 CFMask Quality");
         return TRUE;
     }
 };
 
-static Landsat8CFMaskCloudQuality landsat8CFMaskCloudQualityTemplateInstance;
+static Landsat8CFMaskQuality landsat8CFMaskQualityTemplateInstance;
 

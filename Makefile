@@ -25,6 +25,7 @@ OBJ =	src/plcinput.o \
 	src/landsat8snowquality.o \
 	src/landsat8cloudquality_sr.o \
 	src/landsat8cloudquality_cfmask.o \
+	src/landsat8quality_cfmask.o \
 	src/percentilequality.o \
 	src/qualityfromfile.o \
 	src/samesourcequality.o

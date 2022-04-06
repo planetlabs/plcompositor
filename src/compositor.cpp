@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-#include <wjreader.h>
-
 #include "compositor.h"
 #include "cpl_progress.h"
+
+#include <wjreader.h>
 
 /************************************************************************/
 /*                               Usage()                                */

@@ -45,8 +45,8 @@
 		    "filename": {
 			"type": "string",
 			"required": true
-		    },
-		},
+		    }
+		}
 	    }
 	}
     },
